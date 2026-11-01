@@ -512,7 +512,7 @@ Age categories use the competition order
 ### Future features [Future]
 
 Undo/redo, archiving, guardian links, relay squads, and event grouping are not
-implemented in v1.5. Their user stories record possible future scope; they do not describe existing classes or
+implemented in v1.6. Their user stories record possible future scope; they do not describe existing classes or
 commit to a release version.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -539,7 +539,7 @@ commit to a release version.
 
 **Value proposition**: TrackFlow helps a coach maintain and retrieve an organized athlete roster through short keyboard commands, reducing the effort of navigating forms and keeping contact information available between training sessions.
 
-**v1.5 scope**: The release supports adding, listing, editing, remarking, searching, filtering, sorting, tagging and
+**v1.6 scope**: The release supports adding, listing, editing, remarking, searching, filtering, sorting, tagging and
 untagging events, deleting, clearing, built-in help, and exit. New athletes require a name, age category, phone
 number, email address, and nonblank address. Remarks can be added or removed separately. Roster changes are saved locally before being published
 to the live model; view-only commands do not save roster data.
@@ -578,7 +578,7 @@ overwritten.
 
 ### User stories
 
-Priorities: `* * *` = high, `* *` = medium, `*` = low. **Implemented** describes v1.5 behavior;
+Priorities: `* * *` = high, `* *` = medium, `*` = low. **Implemented** describes v1.6 behavior;
 **[Future]** records unimplemented scope without committing it to a release; **Excluded** records an idea outside
 this product. Priority does not imply implementation status.
 
@@ -617,7 +617,7 @@ this product. Priority does not imply implementation status.
 | US34 | `* *` | [Future] | coach | view an athlete's relay-squad and event-group memberships | review the athlete's assignments before making changes |
 | US35 | `* *` | [Future] | coach | correct an inaccurate status log entry | keep the athlete's recorded history reliable |
 | US36 | `*` | [Future] | coach | import and export roster records in bulk | transfer my own records without entering each one manually |
-| US37 | `*` | [Future] | coach | store names with characters beyond v1.5's supported set | preserve athletes' preferred name spellings |
+| US37 | `*` | [Future] | coach | store names with characters beyond v1.6's supported set | preserve athletes' preferred name spellings |
 | US38 | `*` | [Future] | coach | store multiple phone numbers and phone extensions | retain alternative ways of contacting an athlete |
 | US39 | `*` | [Future] | coach | check whether an email address can receive mail | distinguish a structurally valid address from a reachable one |
 | US40 | `*` | Implemented | keyboard-oriented coach | close TrackFlow with a text command | finish a session from the command box |
@@ -755,7 +755,7 @@ Use case ends.
 
 #### UC05: Filter athletes by age category
 
-**Status**: Implemented in v1.5.<br>
+**Status**: Implemented in v1.6.<br>
 **Related stories**: US02, US03, US05, US11.<br>
 **Precondition**: TrackFlow is open.<br>
 **Success postcondition**: Only matching athletes are displayed; stored records are unchanged.
@@ -850,7 +850,7 @@ These are product requirements and acceptance targets, not claims about the curr
 | Event specialization | An athletics discipline, such as sprinting or long jump, associated with an athlete through the `tag` and `untag` commands. |
 | Guardian | A parent or other responsible adult whose future contact record may be linked to one or more athletes. |
 | Local persistence | Automatically saving roster changes on the coach's computer and loading them in a later application session. |
-| Implemented | A feature available in the current v1.5 code. Future features are identified separately. |
+| Implemented | A feature available in the current v1.6 code. Future features are identified separately. |
 | Normalized field | A value prepared for comparison: surrounding whitespace is removed; name and age-category internal spaces are collapsed; name, category, and email comparisons ignore letter case; phone comparisons ignore permitted formatting characters and use the digits. Display formatting may be retained. |
 | Participation log | A future record of an athlete's involvement in training or competition. |
 | Relay squad / event group | A future grouping of athletes for a relay team or a particular athletics event. |

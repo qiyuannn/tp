@@ -170,7 +170,7 @@ Run those checks on the supported environments before release, and repeat affect
 ### Beta audit: 30 October 2026
 
 This run tested the working tree based on commit `8f4cf3b9`, including the audit fixes, on macOS arm64 with
-Zulu JDK FX 25.0.3. It is evidence for this build, not certification of the future v1.6 release.
+Zulu JDK FX 25.0.3. It is evidence for that build, which was labelled v1.5 before the v1.6 release.
 
 * `./gradlew clean check coverage shadowJar`: passed; 614 tests, zero failures, errors or skips; both Checkstyle
   checks passed. JaCoCo reported 82.5% line and 83.3% branch coverage.
@@ -194,4 +194,4 @@ clarify initial sample data, saved-order restoration, mixed broad/scoped searche
 Native end-to-end keyboard/clipboard interaction, actual small-screen and multi-monitor behavior, Windows/Linux
 launches, and the end-to-end 1,000-athlete GUI performance target remain unverified in this run. The desktop
 automation tool could not attach to the standalone Java process. Run the manual matrix above on the final release
-artifact; JavaFX component tests do not substitute for those checks. The current build is still labelled v1.5.
+artifact; JavaFX component tests do not substitute for those checks.
