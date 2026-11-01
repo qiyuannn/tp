@@ -22,6 +22,8 @@
   before committing it.
 * Austin (`Austin-Chia`) used OpenAI Codex extensively to generate and refine project code, assist with testing
   and debugging, and review and improve documentation.
+* Qi Yuan (`qiyuannn`) used OpenAI Codex and Antigravity extensively to implement feature logic, resolve
+  edge-case bugs, expand automated test coverage, and polish project documentation.
 
 --------------------------------------------------------------------------------------------------------------------
 
