@@ -20,6 +20,8 @@
 * Antony (`antonydchakola-hub`) used Claude (Anthropic) extensively to review and refactor code, write tests, find
   and reproduce bugs, and draft User Guide and Developer Guide text. He reviewed and tested all generated output
   before committing it.
+* Austin (`Austin-Chia`) used OpenAI Codex extensively to generate and refine project code, assist with testing
+  and debugging, and review and improve documentation.
 
 --------------------------------------------------------------------------------------------------------------------
 
