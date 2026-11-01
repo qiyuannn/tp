@@ -36,34 +36,40 @@ public class DisplayedIndexPersistenceTest {
 
     @Test
     public void execute_deleteAfterTiedSort_deletesDisplayedAthlete() throws Exception {
-        assertTargetsDisplayedBob("delete 1", person -> null);
+        // EP: delete command using displayed index 1 after tied sort
+        assertTargetsDisplayedBob("delete 1", person -> null); // Boundary value
     }
 
     @Test
     public void execute_editAfterTiedSort_editsDisplayedAthlete() throws Exception {
+        // EP: edit command using displayed index 1 after tied sort
         assertTargetsDisplayedBob("edit 1 addr/Changed", person ->
-                new PersonBuilder(person).withAddress("Changed").build());
+                new PersonBuilder(person).withAddress("Changed").build()); // Boundary value
     }
 
     @Test
     public void execute_remarkAfterTiedSort_updatesDisplayedAthlete() throws Exception {
+        // EP: remark command using displayed index 1 after tied sort
         assertTargetsDisplayedBob("remark 1 r/Changed", person ->
-                new PersonBuilder(person).withRemark("Changed").build());
+                new PersonBuilder(person).withRemark("Changed").build()); // Boundary value
     }
 
     @Test
     public void execute_tagAfterTiedSort_tagsDisplayedAthlete() throws Exception {
+        // EP: tag command using displayed index 1 after tied sort
         assertTargetsDisplayedBob("tag 1 t/Changed", person ->
-                new PersonBuilder(person).withTags("Original", "Changed").build());
+                new PersonBuilder(person).withTags("Original", "Changed").build()); // Boundary value
     }
 
     @Test
     public void execute_untagAfterTiedSort_untagsDisplayedAthlete() throws Exception {
+        // EP: untag command using displayed index 1 after tied sort
         assertTargetsDisplayedBob("untag 1 t/Original", person ->
-                new PersonBuilder(person).withTags().build());
+                new PersonBuilder(person).withTags().build()); // Boundary value
     }
 
     private void assertTargetsDisplayedBob(String command, UnaryOperator<Person> change) throws Exception {
+        // EP: verifying mutation persistence across unfiltered (false) and filtered (true) views
         for (boolean filtered : List.of(false, true)) {
             Fixture fixture = createFixture(filtered);
             Person alice = fixture.model.getRoster().getPersonList().get(0);
@@ -90,6 +96,7 @@ public class DisplayedIndexPersistenceTest {
 
     @Test
     public void execute_failedSaveAfterTiedSort_preservesRosterDisplayAndFile() throws Exception {
+        // EP: failing storage save rolls back model and preserves file across unfiltered and filtered views
         for (boolean filtered : List.of(false, true)) {
             Fixture fixture = createFixture(filtered);
             List<Person> stored = List.copyOf(fixture.model.getRoster().getPersonList());

@@ -47,6 +47,7 @@ public class DuplicatePersistenceTest {
         List<Person> originalDisplay = List.copyOf(reloaded.getFilteredPersonList());
         String originalFile = Files.readString(rosterStorage.getRosterFilePath());
 
+        // EP: duplicate detection against hidden and visible athletes on add and edit
         Map<String, String> duplicateCommands = Map.of(
                 "add n/AVERY   TAN a/Under 16 p/91234567 e/other@example.com addr/Elsewhere",
                 String.format(AddCommand.MESSAGE_DUPLICATE_PERSON, "Avery Tan"),
@@ -79,6 +80,7 @@ public class DuplicatePersistenceTest {
         Model reloaded = new ModelManager(rosterStorage.readRoster().orElseThrow(), new UserPrefs());
         Logic logic = new LogicManager(reloaded, storage);
         logic.execute("find n/Nobody");
+        // EP: adding athlete with shared phone detail produces warning
         String addFeedback = logic.execute(
                 "add n/Jordan Lee a/Open p/91234567 e/jordan@example.com addr/School").getFeedbackToUser();
         assertEquals("New athlete added: Jordan Lee; Age category: Open; Phone: 91234567; Email: jordan@example.com"
@@ -87,12 +89,14 @@ public class DuplicatePersistenceTest {
                         + "Email: avery@example.com; Matches: phone"), addFeedback);
 
         logic.execute("find n/Jordan");
+        // EP: editing athlete with shared email detail produces warning
         String editFeedback = logic.execute("edit 1 p/92345678 e/AVERY@example.com").getFeedbackToUser();
         assertEquals("Edited athlete: Jordan Lee; Age category: Open; Phone: 92345678; Email: AVERY@example.com"
                 + String.format(Messages.MESSAGE_POSSIBLE_DUPLICATE,
                         "- Avery Tan; Age category: Under 14; Phone: 91234567; "
                         + "Email: avery@example.com; Matches: email"), editFeedback);
 
+        // EP: distinct athletes with shared contact details persist independently
         Model restarted = new ModelManager(rosterStorage.readRoster().orElseThrow(), new UserPrefs());
         assertEquals(reloaded.getRoster(), restarted.getRoster());
         assertEquals(2, restarted.getRoster().getPersonList().size());
@@ -115,6 +119,7 @@ public class DuplicatePersistenceTest {
         Logic logic = new LogicManager(reloaded, storage);
         // Both Alex records are hidden; warning details must identify records without borrowing displayed indexes.
         logic.execute("find n/Nobody");
+        // EP: adding athlete matching multiple hidden athletes with identical names
         String addFeedback = logic.execute(
                 "add n/Blake Tan a/Open p/91111111 e/alex2@example.com addr/Track").getFeedbackToUser();
         assertEquals("New athlete added: Blake Tan; Age category: Open; Phone: 91111111; Email: alex2@example.com"
@@ -125,6 +130,7 @@ public class DuplicatePersistenceTest {
         assertEquals(reloaded.getRoster(), rosterStorage.readRoster().orElseThrow());
 
         logic.execute("find n/Blake");
+        // EP: editing athlete matching multiple hidden athletes with identical names
         String editFeedback = logic.execute("edit 1 p/92222222 e/alex1@example.com").getFeedbackToUser();
         assertEquals("Edited athlete: Blake Tan; Age category: Open; Phone: 92222222; Email: alex1@example.com"
                 + String.format(Messages.MESSAGE_POSSIBLE_DUPLICATE,

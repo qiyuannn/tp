@@ -85,12 +85,14 @@ public class CommandBoxTest {
         }
     }
 
+    // EP: partial command prefix matching existing commands
     @Test
     public void typingCommandWord_showsSuggestions() throws Exception {
         type("ed");
         assertTrue(isSuggestionsPopupShowing());
     }
 
+    // EP: escape key press dismissing active suggestions popup
     @Test
     public void escape_hidesSuggestionsWithoutChangingText() throws Exception {
         type("ed");
@@ -101,23 +103,27 @@ public class CommandBoxTest {
 
     @Test
     public void tab_appliesSelectedSuggestionThenInsertsNextPrefix() throws Exception {
+        // EP: tab key applying highlighted command word suggestion
         type("ad");
         press(KeyCode.TAB);
         assertEquals("add ", getCommandText());
         assertFalse(isSuggestionsPopupShowing());
 
+        // EP: tab key cycling / auto-inserting next parameter prefix
         press(KeyCode.TAB);
         assertEquals("add n/ ", getCommandText());
     }
 
+    // EP: down arrow key navigating to subsequent suggestion followed by tab completion
     @Test
     public void downThenTab_appliesSecondSuggestion() throws Exception {
-        type("f"); // suggests filter, then find
+        type("f"); // Boundary value
         press(KeyCode.DOWN);
         press(KeyCode.TAB);
         assertEquals("find ", getCommandText());
     }
 
+    // EP: enter key executing raw input directly without auto-applying suggestion
     @Test
     public void enter_executesTypedTextInsteadOfSuggestion() throws Exception {
         type("li");

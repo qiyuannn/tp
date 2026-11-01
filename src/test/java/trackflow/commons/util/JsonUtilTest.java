@@ -25,6 +25,7 @@ public class JsonUtilTest {
     @TempDir
     public Path tempDir;
 
+    // EP: valid serializable object to JSON file
     @Test
     public void serializeObjectToJsonFile_noExceptionThrown() throws IOException {
         Path serializationFile = tempDir.resolve("serialize.json");
@@ -36,6 +37,7 @@ public class JsonUtilTest {
         assertEquals(FileUtil.readFromFile(serializationFile), SerializableTestClass.JSON_STRING_REPRESENTATION);
     }
 
+    // EP: valid JSON file to object deserialization
     @Test
     public void deserializeObjectFromJsonFile_noExceptionThrown() throws IOException {
         Path serializationFile = tempDir.resolve("serialize.json");
@@ -49,6 +51,7 @@ public class JsonUtilTest {
         assertEquals(serializableTestClass.getMapOfIntegerToString(), SerializableTestClass.getHashMapTestValues());
     }
 
+    // EP: round-trip serialization and deserialization of valid object
     @Test
     public void jsonUtil_writeThenReadObjectToJson_correctObject() throws IOException {
         SerializableTestClass original = new SerializableTestClass();
@@ -65,14 +68,17 @@ public class JsonUtilTest {
 
     @Test
     public void readJsonFile_missingOrInvalid_handlesGracefully() throws Exception {
+        // EP: non-existent file path (returns empty Optional)
         Path missingFile = tempDir.resolve("missing.json");
         assertTrue(JsonUtil.readJsonFile(missingFile, SerializableTestClass.class).isEmpty());
 
+        // EP: file containing JSON null root (rejected with DataLoadingException)
         Path nullRootFile = tempDir.resolve("nullRoot.json");
-        Files.writeString(nullRootFile, "null");
+        Files.writeString(nullRootFile, "null"); // Boundary value
         assertThrows(DataLoadingException.class, () ->
                 JsonUtil.readJsonFile(nullRootFile, SerializableTestClass.class));
 
+        // EP: malformed JSON syntax (rejected with DataLoadingException)
         Path malformedFile = tempDir.resolve("malformed.json");
         Files.writeString(malformedFile, "{invalid json");
         assertThrows(DataLoadingException.class, () ->
@@ -81,12 +87,18 @@ public class JsonUtilTest {
 
     @Test
     public void fromJsonString_singleRootWithWhitespace_preservesValueAndNullContract() throws IOException {
+        // EP: valid JSON object with surrounding whitespace
         assertEquals(Map.of("message", "literal } { text"),
                 JsonUtil.fromJsonString(" {\"message\":\"literal } { text\"} \t\r\n", Map.class));
+
+        // EP: valid JSON primitive (number) with trailing whitespace
         assertEquals(42, JsonUtil.fromJsonString("42 \n", Integer.class));
-        assertNull(JsonUtil.fromJsonString("null \t", Object.class));
+
+        // EP: JSON null literal with trailing whitespace (returns null)
+        assertNull(JsonUtil.fromJsonString("null \t", Object.class)); // Boundary value
     }
 
+    // EP: invalid JSON string (extra root values, trailing garbage, or truncated syntax)
     @Test
     public void fromJsonString_extraRootsGarbageOrTruncation_throwsIoException() {
         for (String json : List.of("{} GARBAGE", "{} {}", "[] []", "42 43", "null {}", "{\"a\":1")) {

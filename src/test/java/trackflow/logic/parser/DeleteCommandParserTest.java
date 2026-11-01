@@ -23,11 +23,15 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_validArgs_returnsDeleteCommand() {
-        assertParseSuccess(parser, "1", new DeleteCommand(INDEX_FIRST_PERSON));
-        assertParseSuccess(parser, "999999999999999999999999999999",
+        // EP: minimum valid 1-based index
+        assertParseSuccess(parser, "1", new DeleteCommand(INDEX_FIRST_PERSON)); // Boundary value
+
+        // EP: numeric index exceeding 32-bit integer capped at Integer.MAX_VALUE (upper boundary)
+        assertParseSuccess(parser, "999999999999999999999999999999", // Boundary value
                 new DeleteCommand(Index.fromOneBased(Integer.MAX_VALUE)));
     }
 
+    // EP: non-numeric index string
     @Test
     public void parse_invalidArgs_throwsParseException() {
         assertParseFailure(parser, "a", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
@@ -35,7 +39,11 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_emptyArg_throwsParseException() {
-        assertParseFailure(parser, "", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        // EP: empty argument string
+        assertParseFailure(parser, "", // Boundary value
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+
+        // EP: blank / whitespace-only argument string
         assertParseFailure(parser, "   ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
     }
 }

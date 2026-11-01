@@ -27,6 +27,7 @@ public class ListAthleteCommandTest {
         expectedModel = new ModelManager(model.getRoster(), new UserPrefs());
     }
 
+    // EP: unfiltered roster list displays all athletes
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         String expectedMessage = String.format(ListAthleteCommand.MESSAGE_SUCCESS,
@@ -34,6 +35,7 @@ public class ListAthleteCommandTest {
         assertCommandSuccess(new ListAthleteCommand(), model, expectedMessage, expectedModel);
     }
 
+    // EP: filtered roster list resets to show all athletes
     @Test
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
@@ -42,19 +44,21 @@ public class ListAthleteCommandTest {
         assertCommandSuccess(new ListAthleteCommand(), model, expectedMessage, expectedModel);
     }
 
+    // EP: empty roster displays empty roster message
     @Test
     public void execute_emptyRoster_showsEmptyRosterMessage() {
-        Model emptyModel = new ModelManager();
+        Model emptyModel = new ModelManager(); // Boundary value
         Model expectedEmptyModel = new ModelManager();
         assertCommandSuccess(new ListAthleteCommand(), emptyModel, ListAthleteCommand.MESSAGE_EMPTY_ROSTER,
                 expectedEmptyModel);
     }
 
+    // EP: single athlete roster displays singular athlete message
     @Test
     public void execute_oneAthlete_showsSingularMessage() {
         Model singleAthleteModel = new ModelManager(
                 new AthleteRosterBuilder().withPerson(getTypicalRoster().getPersonList().getFirst()).build(),
-                new UserPrefs());
+                new UserPrefs()); // Boundary value
         Model expectedSingleAthleteModel = new ModelManager(singleAthleteModel.getRoster(), new UserPrefs());
         assertCommandSuccess(new ListAthleteCommand(), singleAthleteModel,
                 ListAthleteCommand.MESSAGE_SUCCESS_SINGLE_ATHLETE, expectedSingleAthleteModel);

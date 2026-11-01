@@ -11,29 +11,29 @@ public class IndexTest {
 
     @Test
     public void createOneBasedIndex() {
-        // invalid index
-        assertThrows(IndexOutOfBoundsException.class, () -> Index.fromOneBased(0));
+        // EP: invalid non-positive 1-based index (<= 0)
+        assertThrows(IndexOutOfBoundsException.class, () -> Index.fromOneBased(0)); // Boundary value
 
-        // check equality using the same base
-        assertEquals(1, Index.fromOneBased(1).getOneBased());
+        // EP: valid 1-based index (same base retrieval)
+        assertEquals(1, Index.fromOneBased(1).getOneBased()); // Boundary value
         assertEquals(5, Index.fromOneBased(5).getOneBased());
 
-        // convert from one-based index to zero-based index
-        assertEquals(0, Index.fromOneBased(1).getZeroBased());
+        // EP: valid 1-based index (conversion to 0-based index)
+        assertEquals(0, Index.fromOneBased(1).getZeroBased()); // Boundary value
         assertEquals(4, Index.fromOneBased(5).getZeroBased());
     }
 
     @Test
     public void createZeroBasedIndex() {
-        // invalid index
-        assertThrows(IndexOutOfBoundsException.class, () -> Index.fromZeroBased(-1));
+        // EP: invalid negative 0-based index (< 0)
+        assertThrows(IndexOutOfBoundsException.class, () -> Index.fromZeroBased(-1)); // Boundary value
 
-        // check equality using the same base
-        assertEquals(0, Index.fromZeroBased(0).getZeroBased());
+        // EP: valid 0-based index (same base retrieval)
+        assertEquals(0, Index.fromZeroBased(0).getZeroBased()); // Boundary value
         assertEquals(5, Index.fromZeroBased(5).getZeroBased());
 
-        // convert from zero-based index to one-based index
-        assertEquals(1, Index.fromZeroBased(0).getOneBased());
+        // EP: valid 0-based index (conversion to 1-based index)
+        assertEquals(1, Index.fromZeroBased(0).getOneBased()); // Boundary value
         assertEquals(6, Index.fromZeroBased(5).getOneBased());
     }
 
@@ -41,26 +41,27 @@ public class IndexTest {
     public void equals() {
         final Index fifthPersonIndex = Index.fromOneBased(5);
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same index value)
         assertTrue(fifthPersonIndex.equals(Index.fromOneBased(5)));
         assertTrue(fifthPersonIndex.equals(Index.fromZeroBased(4)));
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(fifthPersonIndex.equals(fifthPersonIndex));
 
-        // null -> returns false
+        // EP: null comparison
         assertFalse(fifthPersonIndex.equals(null));
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(fifthPersonIndex.equals(5.0f));
 
-        // different index -> returns false
-        assertFalse(fifthPersonIndex.equals(Index.fromOneBased(1)));
+        // EP: different index value
+        assertFalse(fifthPersonIndex.equals(Index.fromOneBased(1))); // Boundary value
     }
 
+    // EP: valid Index string representation
     @Test
     public void toStringMethod() {
-        Index index = Index.fromZeroBased(0);
+        Index index = Index.fromZeroBased(0); // Boundary value
         String expected = Index.class.getCanonicalName() + "{zeroBasedIndex=" + index.getZeroBased() + "}";
         assertEquals(expected, index.toString());
     }

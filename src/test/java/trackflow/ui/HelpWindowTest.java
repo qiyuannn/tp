@@ -71,6 +71,7 @@ public class HelpWindowTest {
         }
     }
 
+    // EP: default constructor instantiation (new stage created implicitly)
     @Test
     public void defaultConstructor_initializesHelpWindow() throws Exception {
         AtomicReference<HelpWindow> helpWindowRef = new AtomicReference<>();
@@ -123,6 +124,7 @@ public class HelpWindowTest {
         HelpWindow helpWindow = helpWindowRef.get();
         assertNotNull(helpWindow);
 
+        // EP: explicit stage constructor and full command usage card rendering
         // Verify root stage and scene
         Stage stage = helpWindow.getRoot();
         assertNotNull(stage.getScene());
@@ -137,6 +139,7 @@ public class HelpWindowTest {
         assertNotNull(commandList);
         assertEquals(HelpCommand.COMMAND_USAGES.size(), commandList.getChildren().size());
 
+        // EP: parameter label verification for age category options
         List<String> validCategories = List.of("Under 14", "Under 16", "Under 18", "Under 20", "Open");
 
         for (Node cardNode : commandList.getChildren()) {
@@ -169,6 +172,7 @@ public class HelpWindowTest {
             }
         }
 
+        // EP: window lifecycle operations (show, focus restoration, snapshot rendering, hide)
         // Test show, snapshot rendering, isShowing, focus, and hide lifecycle
         CountDownLatch showLatch = new CountDownLatch(1);
         AtomicReference<Throwable> showErrRef = new AtomicReference<>();
@@ -183,8 +187,8 @@ public class HelpWindowTest {
 
                 WritableImage snapshot = stage.getScene().snapshot(null);
                 assertNotNull(snapshot);
-                assertTrue(snapshot.getWidth() > 0);
-                assertTrue(snapshot.getHeight() > 0);
+                assertTrue(snapshot.getWidth() > 0); // Boundary value
+                assertTrue(snapshot.getHeight() > 0); // Boundary value
 
                 helpWindow.hide();
                 assertFalse(helpWindow.isShowing());
@@ -200,6 +204,7 @@ public class HelpWindowTest {
         }
     }
 
+    // EP: minimum dimension boundary rendering (480x320 window bounds)
     @Test
     public void helpWindow_minimumDimensions_wrapsWithoutHorizontalScroll() throws Exception {
         AtomicReference<HelpWindow> helpWindowRef = new AtomicReference<>();
@@ -210,10 +215,10 @@ public class HelpWindowTest {
             try {
                 Stage stage = new Stage();
                 currentStageRef.set(stage);
-                stage.setMinWidth(480.0);
-                stage.setMinHeight(320.0);
-                stage.setWidth(480.0);
-                stage.setHeight(320.0);
+                stage.setMinWidth(480.0); // Boundary value
+                stage.setMinHeight(320.0); // Boundary value
+                stage.setWidth(480.0); // Boundary value
+                stage.setHeight(320.0); // Boundary value
 
                 HelpWindow helpWindow = new HelpWindow(stage);
                 helpWindowRef.set(helpWindow);

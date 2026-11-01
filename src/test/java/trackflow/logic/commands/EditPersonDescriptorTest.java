@@ -34,14 +34,17 @@ public class EditPersonDescriptorTest {
 
     @Test
     public void isAnyFieldEdited_individualFields_returnsTrue() {
+        // EP: only name field edited
         EditPersonDescriptor nameOnly = new EditPersonDescriptor();
         nameOnly.setName(new Name(VALID_NAME_BOB));
         assertTrue(nameOnly.isAnyFieldEdited());
 
+        // EP: only phone field edited
         EditPersonDescriptor phoneOnly = new EditPersonDescriptor();
         phoneOnly.setPhone(new Phone(VALID_PHONE_BOB));
         assertTrue(phoneOnly.isAnyFieldEdited());
 
+        // EP: only email field edited
         EditPersonDescriptor emailOnly = new EditPersonDescriptor();
         emailOnly.setEmail(new Email(VALID_EMAIL_BOB));
         assertTrue(emailOnly.isAnyFieldEdited());
@@ -49,43 +52,44 @@ public class EditPersonDescriptorTest {
 
     @Test
     public void equals() {
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same field values)
         EditPersonDescriptor descriptorWithSameValues = new EditPersonDescriptor(DESC_AMY);
         assertTrue(DESC_AMY.equals(descriptorWithSameValues));
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(DESC_AMY.equals(DESC_AMY));
 
-        // null -> returns false
-        assertFalse(DESC_AMY.equals(null));
+        // EP: null comparison
+        assertFalse(DESC_AMY.equals(null)); // Boundary value
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(DESC_AMY.equals(5));
 
-        // different values -> returns false
+        // EP: different field values
         assertFalse(DESC_AMY.equals(DESC_BOB));
 
-        // different name -> returns false
+        // EP: different name field
         EditPersonDescriptor editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withName(VALID_NAME_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
-        // different phone -> returns false
+        // EP: different phone field
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withPhone(VALID_PHONE_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
-        // different email -> returns false
+        // EP: different email field
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withEmail(VALID_EMAIL_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
-        // different age category -> returns false
+        // EP: different age category field
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withAgeCategory("Under 16").build();
         assertFalse(DESC_AMY.equals(editedAmy));
     }
 
+    // EP: only age category field edited and copy constructor creates independent copy
     @Test
     public void ageCategoryOnly_countsAsEditAndIsCopied() {
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
-        assertFalse(descriptor.isAnyFieldEdited());
+        assertFalse(descriptor.isAnyFieldEdited()); // Boundary value
         descriptor.setAgeCategory(new AgeCategory("Under 14"));
         assertTrue(descriptor.isAnyFieldEdited());
         EditPersonDescriptor copy = new EditPersonDescriptor(descriptor);
@@ -93,6 +97,7 @@ public class EditPersonDescriptorTest {
         assertEquals(new AgeCategory("Under 14"), copy.getAgeCategory().orElseThrow());
     }
 
+    // EP: only address field edited and copy constructor creates independent copy
     @Test
     public void addressOnly_countsAsEditAndIsCopied() {
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
@@ -106,20 +111,24 @@ public class EditPersonDescriptorTest {
 
     @Test
     public void tags_defensiveCopyAndEmptyReplacement() {
-        Set<Tag> tags = new HashSet<>(Set.of(new Tag("sprinter")));
+        // EP: non-empty tag set defensive copying and immutability
+        Set<Tag> tags = new HashSet<>(Set.of(new Tag("sprinter"))); // Boundary value
         EditPersonDescriptor descriptor = new EditPersonDescriptor();
         descriptor.setTags(tags);
         EditPersonDescriptor copy = new EditPersonDescriptor(descriptor);
         tags.clear();
         assertEquals(Set.of(new Tag("sprinter")), descriptor.getTags().orElseThrow());
         assertThrows(UnsupportedOperationException.class, descriptor.getTags().orElseThrow()::clear);
-        descriptor.setTags(Set.of());
+
+        // EP: empty tag set replacement
+        descriptor.setTags(Set.of()); // Boundary value
         assertTrue(descriptor.isAnyFieldEdited());
-        assertEquals(Set.of(), descriptor.getTags().orElseThrow());
+        assertEquals(Set.of(), descriptor.getTags().orElseThrow()); // Boundary value
         assertEquals(Set.of(new Tag("sprinter")), copy.getTags().orElseThrow());
         assertFalse(descriptor.equals(copy));
     }
 
+    // EP: string representation of edit person descriptor
     @Test
     public void toStringMethod() {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();

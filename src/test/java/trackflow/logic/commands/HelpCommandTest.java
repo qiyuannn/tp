@@ -22,12 +22,14 @@ public class HelpCommandTest {
     private Model model = new ModelManager();
     private Model expectedModel = new ModelManager();
 
+    // EP: valid help command execution producing help flag in command result
     @Test
     public void execute_help_success() {
         CommandResult expectedCommandResult = new CommandResult(SHOWING_HELP_MESSAGE, true, false);
         assertCommandSuccess(new HelpCommand(), model, expectedCommandResult, expectedModel);
     }
 
+    // EP: help message contains instructions and usage strings for all commands
     @Test
     public void helpMessage_containsEveryCommandUsageAndInstructions() {
         for (String usage : HelpCommand.COMMAND_USAGES) {
@@ -38,6 +40,7 @@ public class HelpCommandTest {
         assertTrue(HelpCommand.HELP_MESSAGE.contains("remark 1 r/"));
     }
 
+    // EP: command usages list all 13 command words in defined order without duplicates
     @Test
     public void commandUsages_listEveryCommandOnceInOrder() {
         List<String> expected = List.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD,
@@ -51,6 +54,7 @@ public class HelpCommandTest {
         assertEquals(expected, listed);
     }
 
+    // EP: commands accepting age categories document all valid categories
     @Test
     public void commandUsages_ageCategoryCommandsListAllCategories() {
         List<String> validCategories = List.of("Under 14", "Under 16", "Under 18", "Under 20", "Open");

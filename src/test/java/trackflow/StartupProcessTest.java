@@ -38,8 +38,9 @@ public class StartupProcessTest {
         Path jar = createApplicationJar(home);
         Path rosterPath = home.resolve("data/trackflow.json");
         Files.createDirectories(rosterPath.getParent());
+        // EP: child JVM execution with corrupted JSON recovering in JAR home directory
         String original = "{\"persons\":[]} {\"persons\":[{}]}";
-        Files.writeString(rosterPath, original);
+        Files.writeString(rosterPath, original); // Boundary value
         String output = ProcessTestUtil.runJava(jar, launch, testFolder.resolve("first-output.txt"),
                 StartupProcessProbe.class, "change");
         assertTrue(output.contains("ROSTER_FILE=" + rosterPath), output);
@@ -50,17 +51,20 @@ public class StartupProcessTest {
         assertTrue(Files.exists(home.resolve("preferences.json")));
         assertTrue(Files.exists(home.resolve("trackflow.log.0")));
         assertTrue(Files.readString(home.resolve("trackflow.log.0")).contains("STARTUP_PROCESS_OK"));
+        // EP: backup file created for unreadable roster in JAR home directory
         try (Stream<Path> paths = Files.list(rosterPath.getParent())) {
             List<Path> backups = paths.filter(p -> p.getFileName().toString().endsWith(".bak")).toList();
-            assertEquals(1, backups.size());
+            assertEquals(1, backups.size()); // Boundary value
             assertEquals(original, Files.readString(backups.getFirst()));
         }
+        // EP: second launch preserves previously saved data without creating files in launch directory
         String saved = Files.readString(rosterPath);
         ProcessTestUtil.runJava(jar, launch, testFolder.resolve("reopen-output.txt"), StartupProcessProbe.class);
         assertEquals(saved, Files.readString(rosterPath));
         try (Stream<Path> paths = Files.list(launch)) {
-            assertEquals(0, paths.count(), "The launch directory must not receive application files");
+            assertEquals(0, paths.count(), "The launch directory must not receive application files"); // Boundary value
         }
+        // EP: cleanup of temporary sibling files on successful and failed operations
         try (Stream<Path> paths = Files.walk(home)) {
             assertFalse(paths.anyMatch(p -> p.getFileName().toString().endsWith(".tmp")));
         }
@@ -74,13 +78,14 @@ public class StartupProcessTest {
         }
     }
 
+    // EP: startup when log file cannot be opened continues execution and preserves roster
     @Test
     public void startup_fileLoggerCannotOpen_continuesWithoutChangingRoster() throws Exception {
         Path home = Files.createDirectory(testFolder.resolve("logging failure"));
         Path jar = createApplicationJar(home);
         Path roster = home.resolve("data/trackflow.json");
         Files.createDirectories(roster.getParent());
-        String saved = "{\"persons\":[]}";
+        String saved = "{\"persons\":[]}"; // Boundary value
         Files.writeString(roster, saved);
         // A directory at the first rotated log path reliably prevents opening it on every OS.
         Files.createDirectory(home.resolve("trackflow.log.0"));

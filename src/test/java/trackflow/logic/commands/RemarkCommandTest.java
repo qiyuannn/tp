@@ -31,23 +31,27 @@ public class RemarkCommandTest {
 
     private Model model = new ModelManager(getTypicalRoster(), new UserPrefs());
 
+    // EP: null target index or null remark in constructor
     @Test
     public void constructor_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new RemarkCommand(null, new Remark(VALID_REMARK_AMY)));
-        assertThrows(NullPointerException.class, () -> new RemarkCommand(INDEX_FIRST_PERSON, null));
+        assertThrows(NullPointerException.class, () -> new RemarkCommand(null, // Boundary value
+                new Remark(VALID_REMARK_AMY)));
+        assertThrows(NullPointerException.class, () -> new RemarkCommand(INDEX_FIRST_PERSON, null)); // Boundary value
     }
 
+    // EP: null model reference
     @Test
     public void execute_nullModel_throwsNullPointerException() {
         RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(VALID_REMARK_AMY));
-        assertThrows(NullPointerException.class, () -> remarkCommand.execute(null));
+        assertThrows(NullPointerException.class, () -> remarkCommand.execute(null)); // Boundary value
     }
 
+    // EP: add non-empty remark to person at valid first index in unfiltered list
     @Test
     public void execute_addRemarkUnfilteredList_success() {
         Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Remark remark = new Remark(VALID_REMARK_AMY);
-        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, remark);
+        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, remark); // Boundary value
         Person editedPerson = new PersonBuilder(personToEdit).withRemark(VALID_REMARK_AMY).build();
 
         String expectedMessage = String.format(RemarkCommand.MESSAGE_ADD_REMARK_SUCCESS,
@@ -59,11 +63,12 @@ public class RemarkCommandTest {
         assertCommandSuccess(remarkCommand, model, expectedMessage, expectedModel);
     }
 
+    // EP: delete remark by setting empty remark string in unfiltered list
     @Test
     public void execute_deleteRemarkUnfilteredList_success() {
         Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(""));
-        Person editedPerson = new PersonBuilder(personToEdit).withRemark("").build();
+        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")); // Boundary value
+        Person editedPerson = new PersonBuilder(personToEdit).withRemark("").build(); // Boundary value
 
         String expectedMessage = String.format(RemarkCommand.MESSAGE_DELETE_REMARK_SUCCESS,
                 Messages.formatAthlete(editedPerson));
@@ -74,24 +79,26 @@ public class RemarkCommandTest {
         assertCommandSuccess(remarkCommand, model, expectedMessage, expectedModel);
     }
 
+    // EP: delete remark from person with no existing remark (empty remark string)
     @Test
     public void execute_deleteMissingRemark_failureAndPreservesFilteredView() {
         Person person = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Person withoutRemark = new PersonBuilder(person).withRemark("").build();
+        Person withoutRemark = new PersonBuilder(person).withRemark("").build(); // Boundary value
         model.setPerson(person, withoutRemark);
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
-        assertCommandFailure(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")), model,
+        assertCommandFailure(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")), model, // Boundary value
                 String.format(RemarkCommand.MESSAGE_NO_REMARK, Messages.formatAthlete(withoutRemark)));
     }
 
+    // EP: add non-empty remark to person in filtered list at valid first index
     @Test
     public void execute_filteredList_success() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
         Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Remark remark = new Remark(VALID_REMARK_AMY);
-        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, remark);
+        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, remark); // Boundary value
         Person editedPerson = new PersonBuilder(personToEdit).withRemark(VALID_REMARK_AMY).build();
 
         String expectedMessage = String.format(RemarkCommand.MESSAGE_ADD_REMARK_SUCCESS,
@@ -103,18 +110,20 @@ public class RemarkCommandTest {
         assertCommandSuccess(remarkCommand, model, expectedMessage, expectedModel);
     }
 
+    // EP: invalid index exceeding unfiltered list size
     @Test
     public void execute_invalidPersonIndexUnfilteredList_failure() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1); // Boundary value
         RemarkCommand remarkCommand = new RemarkCommand(outOfBoundIndex, new Remark(VALID_REMARK_AMY));
 
         assertCommandFailure(remarkCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    // EP: invalid index exceeding filtered list size but within athlete roster size
     @Test
     public void execute_invalidPersonIndexFilteredList_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        Index outOfBoundIndex = INDEX_SECOND_PERSON;
+        Index outOfBoundIndex = INDEX_SECOND_PERSON; // Boundary value
         assertTrue(outOfBoundIndex.getZeroBased() < model.getRoster().getPersonList().size());
 
         RemarkCommand remarkCommand = new RemarkCommand(outOfBoundIndex, new Remark(VALID_REMARK_AMY));
@@ -122,6 +131,7 @@ public class RemarkCommandTest {
         assertCommandFailure(remarkCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    // EP: command mutates roster state (changesRoster returns true)
     @Test
     public void changesRoster_returnsTrue() {
         RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(VALID_REMARK_AMY));
@@ -132,23 +142,23 @@ public class RemarkCommandTest {
     public void equals() {
         final RemarkCommand standardCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(VALID_REMARK_AMY));
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same index and remark)
         RemarkCommand commandWithSameValues = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(VALID_REMARK_AMY));
         assertTrue(standardCommand.equals(commandWithSameValues));
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(standardCommand.equals(standardCommand));
 
-        // null -> returns false
-        assertFalse(standardCommand.equals(null));
+        // EP: null comparison
+        assertFalse(standardCommand.equals(null)); // Boundary value
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(standardCommand.equals(new ClearCommand()));
 
-        // different index -> returns false
+        // EP: different index value
         assertFalse(standardCommand.equals(new RemarkCommand(INDEX_SECOND_PERSON, new Remark(VALID_REMARK_AMY))));
 
-        // different remark -> returns false
+        // EP: different remark value
         assertFalse(standardCommand.equals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark(VALID_REMARK_BOB))));
     }
 }

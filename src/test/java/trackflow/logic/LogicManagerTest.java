@@ -75,28 +75,33 @@ public class LogicManagerTest {
 
     @Test
     public void execute_invalidCommandFormat_throwsParseException() {
+        // EP: unrecognized command word
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, String.format(MESSAGE_UNKNOWN_COMMAND, invalidCommand));
     }
 
     @Test
     public void execute_emptyCommand_throwsParseException() {
-        assertParseException("", MESSAGE_EMPTY_COMMAND);
+        // EP: empty command string
+        assertParseException("", MESSAGE_EMPTY_COMMAND); // Boundary value
     }
 
     @Test
     public void execute_pathologicalEmailInput_throwsParseExceptionQuickly() {
+        // EP: pathological email username length
         Duration timeout = Duration.ofMillis(200);
         String longEmailCommand = "add n/Avery Tan a/Under 14 p/91234567 e/" + "a".repeat(5000)
-                + " addr/123 Main Street";
+                + " addr/123 Main Street"; // Boundary value
         assertTimeoutPreemptively(timeout, () ->
                 assertParseException(longEmailCommand, Email.MESSAGE_CONSTRAINTS));
 
+        // EP: pathological email domain length
         String longDomainCommand = "add n/Avery Tan a/Under 14 p/91234567 e/a@" + "b".repeat(5000)
-                + " addr/123 Main Street";
+                + " addr/123 Main Street"; // Boundary value
         assertTimeoutPreemptively(timeout, () ->
                 assertParseException(longDomainCommand, Email.MESSAGE_CONSTRAINTS));
 
+        // EP: pathological email in edit command
         String editLongEmailCommand = "edit 1 e/" + "a".repeat(5000);
         assertTimeoutPreemptively(timeout, () ->
                 assertParseException(editLongEmailCommand, Email.MESSAGE_CONSTRAINTS));
@@ -105,6 +110,7 @@ public class LogicManagerTest {
         assertTimeoutPreemptively(timeout, () ->
                 assertParseException(editLongDomainCommand, Email.MESSAGE_CONSTRAINTS));
 
+        // EP: pathological repeated domain labels risking stack overflow
         String editStackOverflowCommand = "edit 1 e/a@" + "a.".repeat(2500);
         assertTimeoutPreemptively(timeout, () ->
                 assertParseException(editStackOverflowCommand, Email.MESSAGE_CONSTRAINTS));
@@ -112,18 +118,21 @@ public class LogicManagerTest {
 
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
-        String deleteCommand = "delete 9";
+        // EP: out-of-bounds displayed index on empty list
+        String deleteCommand = "delete 9"; // Boundary value
         assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
     public void execute_validCommand_success() throws Exception {
-        String listCommand = ListAthleteCommand.COMMAND_WORD;
+        // EP: valid command execution on empty roster
+        String listCommand = ListAthleteCommand.COMMAND_WORD; // Boundary value
         assertCommandSuccess(listCommand, ListAthleteCommand.MESSAGE_EMPTY_ROSTER, model);
     }
 
     @Test
     public void execute_clear_requiresConfirmationBeforeSaving() throws Exception {
+        // EP: clear command triggers confirmation warning
         logic.execute("add n/Avery Tan a/Under 14 p/91234567 e/avery@example.com addr/Home");
         Path rosterPath = temporaryFolder.resolve("roster.json");
         String savedRoster = Files.readString(rosterPath);
@@ -134,22 +143,27 @@ public class LogicManagerTest {
         assertEquals(1, model.getRoster().getPersonList().size());
         assertEquals(savedRoster, Files.readString(rosterPath));
 
+        // EP: clear confirmation rejected with 'N'
         assertEquals(true, warning.isWarning());
         logic.execute("N");
         assertEquals(savedRoster, Files.readString(rosterPath));
         assertThrows(ParseException.class, () -> logic.execute("Y"));
+        // EP: intervening command cancels pending clear confirmation
         logic.execute("clear");
         logic.execute("list");
         assertThrows(ParseException.class, () -> logic.execute("y"));
+        // EP: clear confirmation accepted with 'Y'
         logic.execute("clear");
         CommandResult confirmed = logic.execute(" Y ");
         assertEquals(true, confirmed.isDataSaved());
-        assertEquals(0, model.getRoster().getPersonList().size());
-        assertEquals(0, new JsonRosterStorage(rosterPath).readRoster().orElseThrow().getPersonList().size());
+        assertEquals(0, model.getRoster().getPersonList().size()); // Boundary value
+        assertEquals(0, // Boundary value
+                new JsonRosterStorage(rosterPath).readRoster().orElseThrow().getPersonList().size());
     }
 
     @Test
     public void execute_rosterChangingCommand_reportsDataSaved() throws Exception {
+        // EP: roster-mutating command sets isDataSaved flag to true
         CommandResult result = logic.execute(
                 "add n/Avery Tan a/Under 14 p/91234567 e/avery@example.com addr/123 Main Street");
 
@@ -158,6 +172,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_clearConfirmationWithUnicodeSpaces_usesCommandWhitespace() throws Exception {
+        // EP: clear confirmation tokens surrounded by unicode whitespace separators
         for (String space : List.of("\u00a0", "\u2007", "\u202f", "\u2003")) {
             logic.execute("add n/Avery Tan a/Open p/91234567 e/avery@example.com addr/Home");
             Path rosterPath = temporaryFolder.resolve("roster.json");
@@ -171,19 +186,20 @@ public class LogicManagerTest {
 
             logic.execute("clear");
             assertEquals(true, logic.execute(space + "Y" + space).isDataSaved());
-            assertEquals(0, model.getRoster().getPersonList().size());
+            assertEquals(0, model.getRoster().getPersonList().size()); // Boundary value
             assertEquals(0, new JsonRosterStorage(rosterPath).readRoster().orElseThrow().getPersonList().size());
         }
     }
 
     @Test
     public void execute_nullWhileClearPending_rejectsWithoutChangingData() throws Exception {
+        // EP: null input during pending clear confirmation
         logic.execute("add n/Avery Tan a/Open p/91234567 e/avery@example.com addr/Home");
         Path rosterPath = temporaryFolder.resolve("roster.json");
         String savedRoster = Files.readString(rosterPath);
         logic.execute("clear");
 
-        assertThrows(NullPointerException.class, () -> logic.execute(null));
+        assertThrows(NullPointerException.class, () -> logic.execute(null)); // Boundary value
         assertEquals(savedRoster, Files.readString(rosterPath));
         assertEquals(1, model.getRoster().getPersonList().size());
         assertThrows(ParseException.class, () -> logic.execute("y"));
@@ -191,6 +207,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_viewCommandsWithUnavailableStorage_doNotSave() throws Exception {
+        // EP: non-mutating query/view commands do not trigger storage write
         JsonRosterStorage unavailableStorage = new JsonRosterStorage(temporaryFolder.resolve("unavailable.json")) {
             @Override
             public void saveRoster(ReadOnlyRoster roster) throws IOException {
@@ -207,6 +224,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_mixedCaseListWithAthlete_returnsAthleteCount() throws Exception {
+        // EP: mixed-case command word execution
         logic.execute("add n/Avery Tan a/Under 14 p/91234567 e/avery.tan@example.com addr/123 Main Street");
         // @@author qiyuannn
         Model expectedModel = new ModelManager(model.getRoster(), new UserPrefs());
@@ -217,6 +235,7 @@ public class LogicManagerTest {
     // @@author qiyuannn
     @Test
     public void execute_editAthlete_persistsCategoryAndPreservesOtherDetails() throws Exception {
+        // EP: edit and remark commands update target fields while preserving unmodified fields
         String command = "add n/Avery Tan a/Under 14 p/91234567 e/avery.tan@example.com addr/123 Main Street";
         assertEquals("New athlete added: Avery Tan; Age category: Under 14; Phone: 91234567; "
                 + "Email: avery.tan@example.com", logic.execute(command).getFeedbackToUser());
@@ -226,7 +245,7 @@ public class LogicManagerTest {
         assertEquals(new AgeCategory("Under 16"), athlete.getAgeCategory());
         assertEquals("Sprints", athlete.getRemark().value);
         assertEquals("Training centre", athlete.getAddress().value);
-        assertEquals(0, athlete.getTags().size());
+        assertEquals(0, athlete.getTags().size()); // Boundary value
         assertEquals("92345678", athlete.getPhone().value);
         JsonRosterStorage reloadedStorage =
                 new JsonRosterStorage(temporaryFolder.resolve("roster.json"));
@@ -237,6 +256,7 @@ public class LogicManagerTest {
     @Test
     // @@author
     public void execute_sameNameMatchingContact_rejectsDuplicates() throws Exception {
+        // EP: duplicate add rejected on matching name and overlapping contacts
         logic.execute("add n/Avery Tan a/Under 14 p/91234567 e/avery.tan@example.com addr/123 Main Street");
         String[] variants = {"a/Under 16 p/91234567 e/avery.tan@example.com",
             "a/Under 14 p/92345678 e/avery.tan@example.com",
@@ -255,6 +275,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_addAthleteWithRequiredAddress_survivesReload() throws Exception {
+        // EP: valid add command with all required fields persists across reloads
         logic.execute("add n/Avery Tan a/under   16 p/91234567 e/Avery.Tan@example.com addr/123 Main Street");
         JsonRosterStorage storage = new JsonRosterStorage(temporaryFolder.resolve("roster.json"));
         Model reloaded = new ModelManager(storage.readRoster().orElseThrow(), new UserPrefs());
@@ -265,12 +286,13 @@ public class LogicManagerTest {
         assertEquals("91234567", athlete.getPhone().value);
         assertEquals("Avery.Tan@example.com", athlete.getEmail().value);
         assertEquals("123 Main Street", athlete.getAddress().value);
-        assertEquals("", athlete.getRemark().value);
-        assertEquals(0, athlete.getTags().size());
+        assertEquals("", athlete.getRemark().value); // Boundary value
+        assertEquals(0, athlete.getTags().size()); // Boundary value
     }
 
     @Test
     public void execute_invalidAdd_preservesRosterAndSavedFile() throws Exception {
+        // EP: invalid add command syntax or missing mandatory fields leaves roster and file unmodified
         String validCommand = "add n/Avery Tan a/Under 14 p/91234567 e/avery.tan@example.com addr/123 Main Street";
         logic.execute(validCommand);
         Path savedPath = temporaryFolder.resolve("roster.json");
@@ -294,6 +316,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_sort_changesDisplayButPreservesSavedRosterOrder() throws Exception {
+        // EP: sorting changes displayed order while preserving physical storage order
         logic.execute("add n/Zoe Tan a/Under 18 p/999 e/zoe@example.com addr/123 Main Street");
         logic.execute("add n/Amy Lim a/Under 14 p/1000 e/amy@example.com addr/123 Main Street");
 
@@ -319,6 +342,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_nameSortWithRepeatedSpaces_preservesTextAcrossUpdatesAndReload() throws Exception {
+        // EP: name sorting with multi-space internal formatting across edits and reload
         logic.execute("add n/Lee  Bob a/Open p/911 e/bob@example.com addr/Home");
         logic.execute("add n/Lee Ann a/Open p/922 e/ann@example.com addr/Home");
         logic.execute("sort name");
@@ -339,6 +363,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_phoneNotesSortThenUpdates_preservesTextAcrossReload() throws Exception {
+        // EP: phone number sort with international prefixes and parenthesized notes
         logic.execute("add n/Aaa Tan a/Open p/200 (5) e/aaa@example.com addr/Home");
         logic.execute("add n/Bbb Tan a/Open p/300 e/bbb@example.com addr/Home");
         logic.execute("add n/Ccc Tan a/Open p/(+65) 200 e/ccc@example.com addr/Home");
@@ -366,18 +391,20 @@ public class LogicManagerTest {
 
     @Test
     public void execute_deleteAfterSort_usesSortedDisplayIndex() throws Exception {
+        // EP: index-based deletion following custom sort targets displayed position
         logic.execute("add n/Amy Lim a/Under 14 p/1000 e/amy@example.com addr/123 Main Street");
         logic.execute("add n/Zoe Tan a/Under 18 p/999 e/zoe@example.com addr/123 Main Street");
         logic.execute("sort name desc");
         assertEquals(List.of("Zoe Tan", "Amy Lim"), getDisplayedNames(model));
 
-        logic.execute("delete 1");
+        logic.execute("delete 1"); // Boundary value
         assertEquals(List.of("Amy Lim"), getDisplayedNames(model));
         assertEquals(List.of("Amy Lim"), getStoredNames(model.getRoster()));
     }
 
     @Test
     public void execute_phoneSortThenFormattedUpdates_preservesOrderAndReloads() throws Exception {
+        // EP: numeric sorting of formatted phone numbers with spaces, symbols, and labels
         logic.execute("add n/Zoe Tan a/Open p/999 e/zoe@example.com addr/Home");
         logic.execute("add n/Amy Lim a/Open p/1000 e/amy@example.com addr/Home");
         logic.execute("sort phone");
@@ -403,12 +430,14 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
+        // EP: storage layer generic IOException handling
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
+        // EP: storage layer AccessDeniedException handling
         // The permission error names the roster file, not the internal temporary file.
         Path rosterPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
@@ -417,6 +446,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_failedRosterChanges_preserveModelDisplayAndSavedFile() throws Exception {
+        // EP: atomic rollback when storage save fails
         logic.execute("add n/Zoe Tan a/Under 14 p/999 e/zoe@example.com addr/Home");
         logic.execute("add n/Amy Lim a/Open p/1000 e/amy@example.com addr/Home");
         logic.execute("sort name desc");
@@ -452,17 +482,20 @@ public class LogicManagerTest {
             assertSame(predicateBeforeFailure, model.getPersonListPredicate());
             assertSame(comparatorBeforeFailure, model.getPersonListComparator());
             assertEquals(savedDataBeforeFailure, Files.readString(savedPath));
-            assertEquals(0, publishedChanges[0]);
+            assertEquals(0, publishedChanges[0]); // Boundary value
         }
     }
 
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+        // EP: immutability of filtered person list view
+        assertThrows(UnsupportedOperationException.class, () ->
+                logic.getFilteredPersonList().remove(0)); // Boundary value
     }
 
     @Test
     public void guiSettings_getAndSet_delegatesToModel() {
+        // EP: get and set GuiSettings delegation to model
         GuiSettings customSettings = new GuiSettings(1280, 720, 100, 200);
         logic.setGuiSettings(customSettings);
         assertEquals(customSettings, logic.getGuiSettings());

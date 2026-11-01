@@ -15,64 +15,73 @@ import org.junit.jupiter.api.Test;
 public class CollectionUtilTest {
     @Test
     public void requireAllNonNullVarargs() {
-        // no arguments
-        assertNullPointerExceptionNotThrown();
+        // EP: empty varargs array (0 arguments)
+        assertNullPointerExceptionNotThrown(); // Boundary value
 
-        // any non-empty argument list
+        // EP: non-empty argument list with all non-null elements
         assertNullPointerExceptionNotThrown(new Object(), new Object());
-        assertNullPointerExceptionNotThrown("test");
-        assertNullPointerExceptionNotThrown("");
+        assertNullPointerExceptionNotThrown("test"); // Boundary value
+        assertNullPointerExceptionNotThrown(""); // Boundary value
 
-        // argument lists with just one null at the beginning
-        assertNullPointerExceptionThrown((Object) null);
-        assertNullPointerExceptionThrown(null, "", new Object());
+        // EP: argument list with null as the first element
+        assertNullPointerExceptionThrown((Object) null); // Boundary value
+        assertNullPointerExceptionThrown(null, "", new Object()); // Boundary value
 
-        // argument lists with nulls in the middle
+        // EP: argument list with null in interior positions
         assertNullPointerExceptionThrown(new Object(), null, null, "test");
 
-        // argument lists with one null as the last argument
-        assertNullPointerExceptionThrown("", new Object(), null);
+        // EP: argument list with null as the last element
+        assertNullPointerExceptionThrown("", new Object(), null); // Boundary value
 
-        // null reference
+        // EP: null varargs array reference
         assertNullPointerExceptionThrown((Object[]) null);
 
-        // confirms nulls inside lists in the argument list are not considered
+        // EP: shallow non-null elements containing nested nulls
         List<Object> containingNull = Arrays.asList((Object) null);
         assertNullPointerExceptionNotThrown(containingNull, new Object());
     }
 
     @Test
     public void requireAllNonNullCollection() {
-        // lists containing nulls in the front
-        assertNullPointerExceptionThrown(Arrays.asList((Object) null));
-        assertNullPointerExceptionThrown(Arrays.asList(null, new Object(), ""));
+        // EP: collection with null as the first element
+        assertNullPointerExceptionThrown(Arrays.asList((Object) null)); // Boundary value
+        assertNullPointerExceptionThrown(Arrays.asList(null, new Object(), "")); // Boundary value
 
-        // lists containing nulls in the middle
+        // EP: collection with null in interior positions
         assertNullPointerExceptionThrown(Arrays.asList("spam", null, new Object()));
 
-        // lists containing nulls at the end
-        assertNullPointerExceptionThrown(Arrays.asList("spam", new Object(), null));
+        // EP: collection with null as the last element
+        assertNullPointerExceptionThrown(Arrays.asList("spam", new Object(), null)); // Boundary value
 
-        // null reference
+        // EP: null collection reference
         assertNullPointerExceptionThrown((Collection<Object>) null);
 
-        // empty list
-        assertNullPointerExceptionNotThrown(Collections.emptyList());
+        // EP: empty collection (size 0)
+        assertNullPointerExceptionNotThrown(Collections.emptyList()); // Boundary value
 
-        // list with all non-null elements
+        // EP: non-empty collection with all non-null elements
         assertNullPointerExceptionNotThrown(Arrays.asList(new Object(), "ham", Integer.valueOf(1)));
 
-        // confirms nulls inside nested lists are not considered
+        // EP: shallow non-null collection containing nested nulls
         List<Object> containingNull = Arrays.asList((Object) null);
         assertNullPointerExceptionNotThrown(Arrays.asList(containingNull, new Object()));
     }
 
     @Test
     public void isAnyNonNull() {
-        assertFalse(CollectionUtil.isAnyNonNull());
-        assertFalse(CollectionUtil.isAnyNonNull((Object) null));
+        // EP: empty varargs array (0 arguments)
+        assertFalse(CollectionUtil.isAnyNonNull()); // Boundary value
+
+        // EP: varargs array with only null elements
+        assertFalse(CollectionUtil.isAnyNonNull((Object) null)); // Boundary value
+
+        // EP: null varargs array reference
         assertFalse(CollectionUtil.isAnyNonNull((Object[]) null));
-        assertTrue(CollectionUtil.isAnyNonNull(new Object()));
+
+        // EP: varargs array with all non-null elements (singleton array)
+        assertTrue(CollectionUtil.isAnyNonNull(new Object())); // Boundary value
+
+        // EP: varargs array with mix of non-null and null elements
         assertTrue(CollectionUtil.isAnyNonNull(new Object(), null));
     }
 

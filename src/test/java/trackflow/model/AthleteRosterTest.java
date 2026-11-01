@@ -26,16 +26,19 @@ public class AthleteRosterTest {
 
     private final AthleteRoster roster = new AthleteRoster();
 
+    // EP: default constructor initializing empty roster
     @Test
     public void constructor() {
-        assertEquals(List.of(), roster.getPersonList());
+        assertEquals(List.of(), roster.getPersonList()); // Boundary value
     }
 
+    // EP: null roster data
     @Test
     public void resetData_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> roster.resetData(null));
+        assertThrows(NullPointerException.class, () -> roster.resetData(null)); // Boundary value
     }
 
+    // EP: valid read-only roster replacing existing data
     @Test
     public void resetData_withValidReadOnlyRoster_replacesData() {
         AthleteRoster newData = getTypicalRoster();
@@ -43,6 +46,7 @@ public class AthleteRosterTest {
         assertEquals(newData, roster);
     }
 
+    // EP: roster data containing duplicate persons
     @Test
     public void resetData_withDuplicatePersons_throwsDuplicatePersonException() {
         // Two persons with the same identity fields
@@ -54,22 +58,26 @@ public class AthleteRosterTest {
         assertThrows(DuplicatePersonException.class, () -> roster.resetData(newData));
     }
 
+    // EP: null person
     @Test
     public void hasPerson_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> roster.hasPerson(null));
+        assertThrows(NullPointerException.class, () -> roster.hasPerson(null)); // Boundary value
     }
 
+    // EP: person not in roster (empty roster)
     @Test
     public void hasPerson_personNotInAthleteRoster_returnsFalse() {
-        assertFalse(roster.hasPerson(ALICE));
+        assertFalse(roster.hasPerson(ALICE)); // Boundary value
     }
 
+    // EP: person present in roster (singleton roster)
     @Test
     public void hasPerson_personInAthleteRoster_returnsTrue() {
-        roster.addPerson(ALICE);
+        roster.addPerson(ALICE); // Boundary value
         assertTrue(roster.hasPerson(ALICE));
     }
 
+    // EP: person with same identity fields but different non-identity attributes present in roster
     @Test
     public void hasPerson_personWithSameIdentityFieldsInAthleteRoster_returnsTrue() {
         roster.addPerson(ALICE);
@@ -78,11 +86,13 @@ public class AthleteRosterTest {
         assertTrue(roster.hasPerson(editedAlice));
     }
 
+    // EP: unmodifiable person list view (direct modification rejected)
     @Test
     public void getPersonList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> roster.getPersonList().remove(0));
+        assertThrows(UnsupportedOperationException.class, () -> roster.getPersonList().remove(0)); // Boundary value
     }
 
+    // EP: default AthleteRoster string representation
     @Test
     public void toStringMethod() {
         String expected = AthleteRoster.class.getCanonicalName() + "{persons=" + roster.getPersonList() + "}";

@@ -32,6 +32,7 @@ public class StorageManagerTest {
         return testFolder.resolve(fileName);
     }
 
+    // EP: delegation to user prefs storage (save and read preferences)
     @Test
     public void prefsReadSave() throws Exception {
         /*
@@ -46,6 +47,7 @@ public class StorageManagerTest {
         assertEquals(original, retrieved);
     }
 
+    // EP: delegation to roster storage (save and read roster)
     @Test
     public void rosterReadSave() throws Exception {
         /*
@@ -61,7 +63,10 @@ public class StorageManagerTest {
 
     @Test
     public void getRosterFilePath() {
+        // EP: retrieve athlete roster file path
         assertEquals(getTempFilePath("ab"), storageManager.getRosterFilePath());
+
+        // EP: retrieve user prefs file path
         assertEquals(getTempFilePath("prefs"), storageManager.getUserPrefsFilePath());
     }
 

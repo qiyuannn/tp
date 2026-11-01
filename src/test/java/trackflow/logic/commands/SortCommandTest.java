@@ -75,16 +75,19 @@ public class SortCommandTest {
                 .build(), new UserPrefs());
     }
 
+    // EP: sort by name in ascending order (case-insensitive)
     @Test
     public void execute_nameAscending_sortsAlphabeticallyIgnoringCase() {
         assertSortSuccess(NAME, ASCENDING, List.of(AMY, MIA, ZOE));
     }
 
+    // EP: sort by name in descending order (reverse alphabetical)
     @Test
     public void execute_nameDescending_sortsReverseAlphabetically() {
         assertSortSuccess(NAME, DESCENDING, List.of(ZOE, MIA, AMY));
     }
 
+    // EP: sort by name with repeated spaces normalizes spacing for ordering while preserving stored names
     @Test
     public void execute_nameWithRepeatedSpaces_sortsWithoutChangingNames() {
         Person leeAnn = new PersonBuilder(AMY).withName("Lee Ann").build();
@@ -99,6 +102,7 @@ public class SortCommandTest {
                 .map(person -> person.getName().fullName).toList());
     }
 
+    // EP: comparator treats names differing only in case and spacing as equal
     @Test
     public void execute_namesDifferingOnlyInCaseAndSpacing_compareAsEqual() {
         Person leeAnn = new PersonBuilder(AMY).withName("Lee Ann").build();
@@ -111,33 +115,38 @@ public class SortCommandTest {
         assertEquals(0, model.getPersonListComparator().compare(leeAnn, equivalentName));
     }
 
+    // EP: sort by age category in ascending order (Under 14 to Open)
     @Test
     public void execute_ageAscending_sortsByCompetitionCategory() {
         useModelWithAllAgeCategories();
         assertSortSuccess(AGE, ASCENDING, List.of(AMY, IAN, ZOE, UMA, MIA));
     }
 
+    // EP: sort by age category in descending order (Open to Under 14)
     @Test
     public void execute_ageDescending_sortsByReverseCompetitionCategory() {
         useModelWithAllAgeCategories();
         assertSortSuccess(AGE, DESCENDING, List.of(MIA, UMA, ZOE, IAN, AMY));
     }
 
+    // EP: sort by phone in ascending order (numerical order)
     @Test
     public void execute_phoneAscending_sortsNumerically() {
         assertSortSuccess(PHONE, ASCENDING, List.of(ZOE, AMY, MIA));
     }
 
+    // EP: sort by phone in descending order (reverse numerical order)
     @Test
     public void execute_phoneDescending_sortsReverseNumerically() {
         assertSortSuccess(PHONE, DESCENDING, List.of(MIA, AMY, ZOE));
     }
 
+    // EP: sort by formatted phone numbers strips formatting for comparison while preserving stored values
     @Test
     public void execute_formattedPhones_sortsDigitsWithoutChangingStoredValues() {
         for (String phone : List.of("1 000", "+1-000", "(+1) 000", "1000 (HP)", "000 1000")) {
             Person formattedAmy = new PersonBuilder(AMY).withPhone(phone).build();
-            Person longPhoneMia = new PersonBuilder(MIA).withPhone("9".repeat(100)).build();
+            Person longPhoneMia = new PersonBuilder(MIA).withPhone("9".repeat(100)).build(); // Boundary value
             model = new ModelManager(new AthleteRosterBuilder().withPerson(longPhoneMia)
                     .withPerson(formattedAmy).withPerson(ZOE).build(), new UserPrefs());
 
@@ -147,6 +156,7 @@ public class SortCommandTest {
         }
     }
 
+    // EP: sort by phone with notes extracts significant digits and retains country codes
     @Test
     public void execute_phoneNotes_sortsSignificantDigitsAndKeepsCountryCode() {
         for (String phone : List.of("200 (5)", "2 00 (Office 9)", "000200 (1234)")) {
@@ -163,6 +173,7 @@ public class SortCommandTest {
         }
     }
 
+    // EP: sort phone with numeric note and zero digits distinguishes note from country code
     @Test
     public void execute_numericNoteWithZeroNumber_doesNotTreatNoteAsCountryCode() {
         Person zeroNumber = new PersonBuilder(AMY).withPhone("(1) 000").build();
@@ -173,22 +184,26 @@ public class SortCommandTest {
         assertSortSuccess(PHONE, DESCENDING, List.of(ZOE, zeroNumber));
     }
 
+    // EP: sort by email in ascending and descending order (case-insensitive)
     @Test
     public void execute_emailAscendingAndDescending_sortsAlphabeticallyIgnoringCase() {
         assertSortSuccess(EMAIL, ASCENDING, List.of(AMY, MIA, ZOE));
         assertSortSuccess(EMAIL, DESCENDING, List.of(ZOE, MIA, AMY));
     }
 
+    // EP: sort by address in ascending order places empty address first
     @Test
     public void execute_addressAscending_placesEmptyAddressFirst() {
-        assertSortSuccess(ADDRESS, ASCENDING, List.of(AMY, MIA, ZOE));
+        assertSortSuccess(ADDRESS, ASCENDING, List.of(AMY, MIA, ZOE)); // Boundary value
     }
 
+    // EP: sort by address in descending order places empty address last
     @Test
     public void execute_addressDescending_placesEmptyAddressLast() {
-        assertSortSuccess(ADDRESS, DESCENDING, List.of(ZOE, MIA, AMY));
+        assertSortSuccess(ADDRESS, DESCENDING, List.of(ZOE, MIA, AMY)); // Boundary value
     }
 
+    // EP: sort on filtered list sorts matches and list restores roster order
     @Test
     public void execute_filteredList_sortsMatchesAndListRestoresRosterOrder() {
         model.updateFilteredPersonList(person -> !person.equals(MIA));
@@ -199,13 +214,15 @@ public class SortCommandTest {
         assertEquals(List.of(ZOE, MIA, AMY), model.getFilteredPersonList());
     }
 
+    // EP: sort on empty roster succeeds with empty display
     @Test
     public void execute_emptyRoster_succeedsWithEmptyDisplay() {
         model = new ModelManager();
 
-        assertSortSuccess(NAME, ASCENDING, List.of());
+        assertSortSuccess(NAME, ASCENDING, List.of()); // Boundary value
     }
 
+    // EP: add command after sort places new athlete in correct sorted position
     @Test
     public void execute_sortThenAdd_newAthleteAppearsInSortedPosition() {
         Person ben = new PersonBuilder()
@@ -221,10 +238,11 @@ public class SortCommandTest {
         assertEquals(List.of(AMY, ben, MIA, ZOE), model.getFilteredPersonList());
     }
 
+    // EP: delete command after sort targets 1-based index from sorted display
     @Test
     public void execute_sortThenDelete_usesDisplayedSortedIndex() throws Exception {
         new SortCommand(NAME, ASCENDING).execute(model);
-        new DeleteCommand(Index.fromOneBased(1)).execute(model);
+        new DeleteCommand(Index.fromOneBased(1)).execute(model); // Boundary value
 
         assertFalse(model.hasPerson(AMY));
         assertEquals(List.of(MIA, ZOE), model.getFilteredPersonList());
@@ -234,14 +252,21 @@ public class SortCommandTest {
     public void equals() {
         SortCommand command = new SortCommand(NAME, ASCENDING);
 
+        // EP: reflexive equality (same object instance)
         assertTrue(command.equals(command));
+        // EP: symmetric equality (different instance with same field and order)
         assertTrue(command.equals(new SortCommand(NAME, ASCENDING)));
+        // EP: different sort order
         assertFalse(command.equals(new SortCommand(NAME, DESCENDING)));
+        // EP: different sort field
         assertFalse(command.equals(new SortCommand(AGE, ASCENDING)));
+        // EP: null comparison
         assertFalse(command.equals(null));
+        // EP: different object type
         assertFalse(command.equals(new ClearCommand()));
     }
 
+    // EP: string representation includes field and order
     @Test
     public void toStringMethod() {
         SortCommand command = new SortCommand(AGE, DESCENDING);

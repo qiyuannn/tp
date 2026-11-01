@@ -12,6 +12,7 @@ public class ExitCommandTest {
     private Model model = new ModelManager();
     private Model expectedModel = new ModelManager();
 
+    // EP: valid exit command execution producing exit flag in command result
     @Test
     public void execute_exit_success() {
         CommandResult expectedCommandResult = new CommandResult(MESSAGE_EXIT_ACKNOWLEDGEMENT, false, true);

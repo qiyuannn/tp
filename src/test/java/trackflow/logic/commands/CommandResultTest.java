@@ -9,6 +9,7 @@ import static trackflow.testutil.Assert.assertThrows;
 import org.junit.jupiter.api.Test;
 
 public class CommandResultTest {
+    // EP: null feedback to user
     @Test
     public void constructor_nullFeedbackToUser_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new CommandResult(null));
@@ -18,29 +19,30 @@ public class CommandResultTest {
     public void equals() {
         CommandResult commandResult = new CommandResult("feedback");
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same feedback and default boolean flags)
         assertTrue(commandResult.equals(new CommandResult("feedback")));
+        // EP: symmetric equality (different instance with explicit matching boolean flags)
         assertTrue(commandResult.equals(new CommandResult("feedback", false, false)));
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(commandResult.equals(commandResult));
 
-        // null -> returns false
+        // EP: null comparison
         assertFalse(commandResult.equals(null));
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(commandResult.equals(0.5f));
 
-        // different feedbackToUser value -> returns false
+        // EP: different feedbackToUser value
         assertFalse(commandResult.equals(new CommandResult("different")));
 
-        // different showHelp value -> returns false
+        // EP: different showHelp flag
         assertFalse(commandResult.equals(new CommandResult("feedback", true, false)));
 
-        // different exit value -> returns false
+        // EP: different exit flag
         assertFalse(commandResult.equals(new CommandResult("feedback", false, true)));
 
-        // different dataSaved value -> returns false
+        // EP: different dataSaved flag
         assertFalse(commandResult.equals(commandResult.withDataSaved()));
     }
 
@@ -48,22 +50,23 @@ public class CommandResultTest {
     public void hashcode() {
         CommandResult commandResult = new CommandResult("feedback");
 
-        // same values -> returns same hashcode
+        // EP: same field values yield equal hash code
         assertEquals(commandResult.hashCode(), new CommandResult("feedback").hashCode());
 
-        // different feedbackToUser value -> returns different hashcode
+        // EP: different feedbackToUser yields different hash code
         assertNotEquals(commandResult.hashCode(), new CommandResult("different").hashCode());
 
-        // different showHelp value -> returns different hashcode
+        // EP: different showHelp flag yields different hash code
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", true, false).hashCode());
 
-        // different exit value -> returns different hashcode
+        // EP: different exit flag yields different hash code
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, true).hashCode());
 
-        // different dataSaved value -> returns different hashcode
+        // EP: different dataSaved flag yields different hash code
         assertNotEquals(commandResult.hashCode(), commandResult.withDataSaved().hashCode());
     }
 
+    // EP: string representation includes all state fields
     @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
@@ -74,6 +77,7 @@ public class CommandResultTest {
         assertEquals(expected, commandResult.toString());
     }
 
+    // EP: warning factory creates distinct warning state preserving warning on mutation
     @Test
     public void warning_hasDistinctState() {
         CommandResult warning = CommandResult.warning("Confirm?");
@@ -83,6 +87,7 @@ public class CommandResultTest {
         assertTrue(warning.withDataSaved().isWarning());
     }
 
+    // EP: withDataSaved creates immutable modified copy preserving original state
     @Test
     public void withDataSaved_returnsSavedCopyWithoutChangingOriginal() {
         CommandResult original = new CommandResult("feedback", true, false);

@@ -32,11 +32,13 @@ public class FindCommandTest {
     private Model model = new ModelManager(getTypicalRoster(), new UserPrefs());
     private Model expectedModel = new ModelManager(getTypicalRoster(), new UserPrefs());
 
+    // EP: null predicate in constructor
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new FindCommand(null));
     }
 
+    // EP: null model during command execution
     @Test
     public void execute_nullModel_throwsNullPointerException() {
         FindCommand command = new FindCommand(new PersonContainsKeywordsPredicate(List.of("first")));
@@ -53,41 +55,44 @@ public class FindCommandTest {
         FindCommand findFirstCommand = new FindCommand(firstPredicate);
         FindCommand findSecondCommand = new FindCommand(secondPredicate);
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(findFirstCommand.equals(findFirstCommand));
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same predicate)
         FindCommand findFirstCommandCopy = new FindCommand(firstPredicate);
         assertTrue(findFirstCommand.equals(findFirstCommandCopy));
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(findFirstCommand.equals(1));
 
-        // null -> returns false
+        // EP: null comparison
         assertFalse(findFirstCommand.equals(null));
 
-        // different person -> returns false
+        // EP: different predicate values
         assertFalse(findFirstCommand.equals(findSecondCommand));
     }
 
+    // EP: zero search keywords matching no athletes (empty result)
     @Test
     public void execute_zeroKeywords_noAthleteFound() {
-        PersonContainsKeywordsPredicate predicate = preparePredicate(" ");
+        PersonContainsKeywordsPredicate predicate = preparePredicate(" "); // Boundary value
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, FindCommand.MESSAGE_NO_MATCHES, expectedModel);
-        assertEquals(List.of(), model.getFilteredPersonList());
+        assertEquals(List.of(), model.getFilteredPersonList()); // Boundary value
     }
 
+    // EP: partial email keyword matching exactly one athlete
     @Test
     public void execute_partialEmail_oneAthleteFound() {
         PersonContainsKeywordsPredicate predicate = preparePredicate("heinz@");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, FindCommand.MESSAGE_SUCCESS_SINGLE, expectedModel);
-        assertEquals(List.of(CARL), model.getFilteredPersonList());
+        assertEquals(List.of(CARL), model.getFilteredPersonList()); // Boundary value
     }
 
+    // EP: multiple keywords matching across different fields
     @Test
     public void execute_keywordsAcrossFields_multipleAthletesFound() {
         PersonContainsKeywordsPredicate predicate = preparePredicate("Kurz werner 2427");
@@ -98,6 +103,7 @@ public class FindCommandTest {
         assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
     }
 
+    // EP: field-scoped name keyword filtering out matches in non-name fields
     @Test
     public void execute_nameScopedKeyword_ignoresMatchesInOtherFields() {
         Person namedUnderwood = new PersonBuilder().withName("Underwood Tan").withAgeCategory("Open").build();
@@ -112,9 +118,10 @@ public class FindCommandTest {
         expectedModel.updateFilteredPersonList(predicate);
 
         assertCommandSuccess(command, model, FindCommand.MESSAGE_SUCCESS_SINGLE, expectedModel);
-        assertEquals(List.of(namedUnderwood), model.getFilteredPersonList());
+        assertEquals(List.of(namedUnderwood), model.getFilteredPersonList()); // Boundary value
     }
 
+    // EP: phrase queries with irregular whitespaces match and preserve stored athlete names
     @Test
     public void execute_namePhraseWithRepeatedSpaces_matchesWithoutChangingStoredName() throws Exception {
         FindCommandParser parser = new FindCommandParser();
@@ -128,10 +135,11 @@ public class FindCommandTest {
                 assertEquals(storedName, model.getRoster().getPersonList().get(0).getName().fullName);
             }
             parser.parse(" n/Tan Avery").execute(model);
-            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertTrue(model.getFilteredPersonList().isEmpty()); // Boundary value
         }
     }
 
+    // EP: string representation includes predicate field
     @Test
     public void toStringMethod() {
         PersonContainsKeywordsPredicate predicate = new PersonContainsKeywordsPredicate(List.of("keyword"));

@@ -41,6 +41,7 @@ public class JsonSerializableRosterTest {
     private static final Path DUPLICATE_PERSON_FILE = TEST_DATA_FOLDER.resolve("duplicatePersonAthleteRoster.json");
     // @@author -
 
+    // EP: roster containing duplicate persons with same identity
     // @@author Austin-Chia
     @Test
     public void toModelType_sameNameSharedContact_throwsIllegalValueException() {
@@ -53,6 +54,7 @@ public class JsonSerializableRosterTest {
                 saved::toModelType);
     }
 
+    // EP: valid typical roster JSON file
     // @@author -
     @Test
     public void toModelType_typicalPersonsFile_success() throws Exception {
@@ -65,6 +67,7 @@ public class JsonSerializableRosterTest {
         assertEquals(rosterFromFile, typicalRoster);
     }
 
+    // EP: roster JSON file containing invalid person details
     @Test
     public void toModelType_invalidPersonFile_throwsIllegalValueException() throws Exception {
         // @@author Austin-Chia
@@ -74,6 +77,7 @@ public class JsonSerializableRosterTest {
         assertThrows(IllegalValueException.class, dataFromFile::toModelType);
     }
 
+    // EP: roster JSON file with duplicate person entries
     @Test
     public void toModelType_duplicatePersons_throwsIllegalValueException() throws Exception {
         // @@author Austin-Chia
@@ -84,16 +88,18 @@ public class JsonSerializableRosterTest {
                 dataFromFile::toModelType);
     }
 
+    // EP: null persons list (missing athlete list)
     // @@author qiyuannn
     @Test
     public void toModelType_nullPersonsList_throwsIllegalValueException() {
-        JsonSerializableRoster roster = new JsonSerializableRoster((List<JsonAdaptedPerson>) null);
+        JsonSerializableRoster roster = new JsonSerializableRoster((List<JsonAdaptedPerson>) null); // Boundary value
         assertThrows(IllegalValueException.class, "Athlete list is missing!", roster::toModelType);
     }
 
+    // EP: persons list containing a null element
     @Test
     public void toModelType_nullPersonElement_throwsIllegalValueException() {
-        JsonSerializableRoster roster = new JsonSerializableRoster(Collections.singletonList(null));
+        JsonSerializableRoster roster = new JsonSerializableRoster(Collections.singletonList(null)); // Boundary value
         assertThrows(IllegalValueException.class, "Athlete list contains a null athlete!", roster::toModelType);
     }
 

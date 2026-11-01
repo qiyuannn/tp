@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 public class RemarkTest {
 
+    // EP: null remark
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Remark(null));
@@ -18,22 +19,22 @@ public class RemarkTest {
     public void equals() {
         Remark remark = new Remark("Hello");
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(remark.equals(remark));
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same remark text) & string representation
         Remark remarkCopy = new Remark(remark.value);
         assertTrue(remark.equals(remarkCopy));
         assertEquals(remark.hashCode(), remarkCopy.hashCode());
         assertEquals("Hello", remark.toString());
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(remark.equals(1));
 
-        // null -> returns false
+        // EP: null comparison
         assertFalse(remark.equals(null));
 
-        // different remark -> returns false
+        // EP: different remark value
         Remark differentRemark = new Remark("Bye");
         assertFalse(remark.equals(differentRemark));
     }

@@ -13,11 +13,13 @@ import org.junit.jupiter.api.Test;
 
 public class AddressTest {
 
+    // EP: null address
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Address(null));
     }
 
+    // EP: invalid address (blank / whitespace-only string)
     @Test
     public void constructor_invalidAddress_throwsIllegalArgumentException() {
         String invalidAddress = " ";
@@ -26,22 +28,31 @@ public class AddressTest {
 
     @Test
     public void isValidAddress() {
-        // null address
+        // EP: null address
         assertThrows(NullPointerException.class, () -> Address.isValidAddress(null));
 
-        // invalid addresses
-        assertTrue(Address.isValidAddress("")); // no address for a new athlete
-        assertFalse(Address.isValidAddress(" ")); // spaces only
-        assertFalse(Address.isValidAddress("Line1 Line2")); // line separator
-        assertFalse(Address.isValidAddress("Line1\nLine2")); // line break
+        // EP: valid empty address (optional address for athlete)
+        assertTrue(Address.isValidAddress("")); // Boundary value
+
+        // EP: invalid blank address (whitespace only)
+        assertFalse(Address.isValidAddress(" "));
+
+        // EP: invalid address containing line breaks or line separators
+        assertFalse(Address.isValidAddress("Line1 Line2"));
+        assertFalse(Address.isValidAddress("Line1\nLine2"));
         assertTrue(Address.MESSAGE_CONSTRAINTS.contains("except line breaks"));
 
-        // valid addresses
+        // EP: valid typical non-empty address
         assertTrue(Address.isValidAddress("Blk 456, Den Road, #01-355"));
-        assertTrue(Address.isValidAddress("-")); // one character
-        assertTrue(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA")); // long address
+
+        // EP: valid single-character address (minimum non-empty length)
+        assertTrue(Address.isValidAddress("-")); // Boundary value
+
+        // EP: valid long address
+        assertTrue(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA"));
     }
 
+    // EP: invalid address containing line break characters at various positions (start, middle, end, standalone)
     @Test
     public void isValidAddress_lineBreakAtAnyPosition_returnsFalse() {
         for (String lineBreak : new String[] {"\n", "\r", "\u000b", "\f", "\u0085", "\u2028", "\u2029"}) {
@@ -52,6 +63,7 @@ public class AddressTest {
         }
     }
 
+    // EP: Unicode whitespace handling (invalid when blank or leading, valid when internal)
     @Test
     public void isValidAddress_unicodeSpaces_rejectsBlankButPreservesInternalSpacing() {
         for (String space : new String[] {"\u00a0", "\u2003", "\u2007", "\u202f", "\u3000"}) {
@@ -65,21 +77,21 @@ public class AddressTest {
     public void equals() {
         Address address = new Address("Valid Address");
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same address value) & string representation
         assertTrue(address.equals(new Address("Valid Address")));
         assertEquals(address.hashCode(), new Address("Valid Address").hashCode());
         assertEquals("Valid Address", address.toString());
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(address.equals(address));
 
-        // null -> returns false
+        // EP: null comparison
         assertFalse(address.equals(null));
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(address.equals(5.0f));
 
-        // different values -> returns false
+        // EP: different field value
         assertFalse(address.equals(new Address("Other Valid Address")));
     }
 }

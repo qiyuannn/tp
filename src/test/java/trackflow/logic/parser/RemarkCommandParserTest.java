@@ -19,15 +19,15 @@ public class RemarkCommandParserTest {
 
     @Test
     public void parse_indexSpecified_success() {
-        // have remark
-        Index targetIndex = INDEX_FIRST_PERSON;
+        // EP: valid index with non-empty remark value
+        Index targetIndex = INDEX_FIRST_PERSON; // Boundary value
         String userInput = targetIndex.getOneBased() + " " + PREFIX_REMARK + nonEmptyRemark;
         RemarkCommand expectedCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(nonEmptyRemark));
         assertParseSuccess(parser, userInput, expectedCommand);
 
-        // no remark
+        // EP: valid index with empty remark value (clearing remark)
         userInput = targetIndex.getOneBased() + " " + PREFIX_REMARK;
-        expectedCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(""));
+        expectedCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")); // Boundary value
         assertParseSuccess(parser, userInput, expectedCommand);
     }
 
@@ -35,17 +35,18 @@ public class RemarkCommandParserTest {
     public void parse_missingCompulsoryField_failure() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RemarkCommand.MESSAGE_USAGE);
 
-        // no parameters
-        assertParseFailure(parser, "", expectedMessage);
+        // EP: empty input or command word only without arguments
+        assertParseFailure(parser, "", expectedMessage); // Boundary value
         assertParseFailure(parser, RemarkCommand.COMMAND_WORD, expectedMessage);
 
-        // no index
+        // EP: missing index preamble (command word followed by remark text)
         assertParseFailure(parser, RemarkCommand.COMMAND_WORD + " " + nonEmptyRemark, expectedMessage);
 
-        // no remark prefix
+        // EP: missing remark prefix (valid index without r/ prefix)
         assertParseFailure(parser, INDEX_FIRST_PERSON.getOneBased() + "", expectedMessage);
     }
 
+    // EP: unknown prefix parameter accompanying valid remark
     @Test
     public void parse_unknownParameter_failure() {
         assertParseFailure(parser, "1 r/Note n/Alice",
@@ -53,18 +54,21 @@ public class RemarkCommandParserTest {
                         + Messages.MESSAGE_LITERAL_PREFIX_HINT);
     }
 
+    // EP: duplicate remark prefix occurrence
     @Test
     public void parse_repeatedRemarkPrefix_failure() {
         assertParseFailure(parser, "1 r/first r/second",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_REMARK));
     }
 
+    // EP: uppercase remark prefix (case-insensitive prefix recognition)
     @Test
     public void parse_mixedCaseRemarkPrefix_success() {
         assertParseSuccess(parser, "1 R/Some remark.",
                 new RemarkCommand(INDEX_FIRST_PERSON, new Remark(nonEmptyRemark)));
     }
 
+    // EP: remark value containing forward slash character (not parsed as prefix delimiter)
     @Test
     public void parse_slashInRemark_success() {
         String remarkWithSlash = "Available Mon/Tue";

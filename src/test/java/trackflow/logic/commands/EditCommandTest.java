@@ -53,6 +53,7 @@ public class EditCommandTest {
     // @@author
 
     // @@author Austin-Chia
+    // EP: edit person creating shared contact with existing person (warning emitted)
     @Test
     public void execute_sharedContactWithDifferentName_successWithWarning() {
         Person original = new PersonBuilder().withName("Avery Tan").build();
@@ -66,7 +67,7 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(model.getRoster(), new UserPrefs());
         expectedModel.setPerson(original, edited);
         EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withEmail("OTHER@example.com").build());
+                new EditPersonDescriptorBuilder().withEmail("OTHER@example.com").build()); // Boundary value
         String expected = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.formatAthlete(edited))
                 + String.format(Messages.MESSAGE_POSSIBLE_DUPLICATE,
                         "- Jordan Lee; Age category: Open; Phone: 81112222; Email: other@example.com; Matches: email");
@@ -74,6 +75,7 @@ public class EditCommandTest {
     }
 
     // @@author
+    // EP: edit all fields of person at valid first index in unfiltered list
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Person editedPerson = new PersonBuilder(model.getFilteredPersonList().get(0))
@@ -81,7 +83,7 @@ public class EditCommandTest {
                 .withPhone(VALID_PHONE_BOB).withEmail("bob@example.com")
                 .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor); // Boundary value
 
         String expectedMessage = String.format(
                 EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.formatAthlete(editedPerson));
@@ -94,9 +96,10 @@ public class EditCommandTest {
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
+    // EP: edit subset of fields of person at valid maximum boundary index in unfiltered list
     @Test
     public void execute_someFieldsSpecifiedUnfilteredList_success() {
-        Index indexLastPerson = Index.fromOneBased(model.getFilteredPersonList().size());
+        Index indexLastPerson = Index.fromOneBased(model.getFilteredPersonList().size()); // Boundary value
         Person lastPerson = model.getFilteredPersonList().get(indexLastPerson.getZeroBased());
 
         PersonBuilder personInList = new PersonBuilder(lastPerson);
@@ -117,12 +120,14 @@ public class EditCommandTest {
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
+    // EP: edit command with empty descriptor (no fields specified)
     @Test
     public void execute_noFieldSpecifiedUnfilteredList_failure() {
-        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor()); // Boundary value
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_NO_CHANGE);
     }
 
+    // EP: edit person with identical fields (no effective change)
     @Test
     public void execute_identicalFieldsUnfilteredList_failure() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
@@ -131,6 +136,7 @@ public class EditCommandTest {
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_NO_CHANGE);
     }
 
+    // EP: edit person with only same name re-specified (no change)
     @Test
     public void execute_sameNameUnfilteredList_failure() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
@@ -140,6 +146,7 @@ public class EditCommandTest {
         assertCommandFailure(editCommand, model, EditCommand.MESSAGE_NO_CHANGE);
     }
 
+    // EP: edit person in filtered list at valid index
     @Test
     public void execute_filteredList_success() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
@@ -147,7 +154,7 @@ public class EditCommandTest {
         Person personInFilteredList = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person editedPerson = new PersonBuilder(personInFilteredList).withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
+                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build()); // Boundary value
 
         String expectedMessage = String.format(
                 EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.formatAthlete(editedPerson));
@@ -160,6 +167,7 @@ public class EditCommandTest {
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
+    // EP: edit person to duplicate another existing person in unfiltered list
     @Test
     public void execute_duplicatePersonUnfilteredList_failure() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
@@ -170,6 +178,7 @@ public class EditCommandTest {
                 String.format(EditCommand.MESSAGE_DUPLICATE_PERSON, firstPerson.getName()));
     }
 
+    // EP: edit person in filtered list to duplicate another person in athlete roster
     @Test
     public void execute_duplicatePersonFilteredList_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
@@ -185,9 +194,10 @@ public class EditCommandTest {
                 String.format(EditCommand.MESSAGE_DUPLICATE_PERSON, personInList.getName()));
     }
 
+    // EP: invalid index exceeding unfiltered list size
     @Test
     public void execute_invalidPersonIndexUnfilteredList_failure() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1); // Boundary value
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build();
         EditCommand editCommand = new EditCommand(outOfBoundIndex, descriptor);
 
@@ -198,10 +208,11 @@ public class EditCommandTest {
      * Edit filtered list where index is larger than size of filtered list,
      * but smaller than size of athlete roster
      */
+    // EP: invalid index exceeding filtered list size but within athlete roster size
     @Test
     public void execute_invalidPersonIndexFilteredList_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        Index outOfBoundIndex = INDEX_SECOND_PERSON;
+        Index outOfBoundIndex = INDEX_SECOND_PERSON; // Boundary value
         // ensures that outOfBoundIndex is still in bounds of athlete roster list
         // @@author qiyuannn
         assertTrue(outOfBoundIndex.getZeroBased() < model.getRoster().getPersonList().size());
@@ -215,16 +226,20 @@ public class EditCommandTest {
 
     @Test
     public void execute_tagsOnly_replacesAndClearsWhilePreservingOtherDetails() throws Exception {
+        // EP: replace tags with multiple tags while preserving other details
         Person original = model.getFilteredPersonList().get(0);
         new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder()
                 .withTags("sprinter", "relay").build()).execute(model);
         Person edited = model.getFilteredPersonList().get(0);
         assertEquals(new PersonBuilder(original).withTags("sprinter", "relay").build(), edited);
+
+        // EP: clear tags with empty tag set while preserving other details
         new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptorBuilder().withTags().build()).execute(model);
         Person cleared = model.getFilteredPersonList().get(0);
-        assertEquals(new PersonBuilder(original).withTags().build(), cleared);
+        assertEquals(new PersonBuilder(original).withTags().build(), cleared); // Boundary value
     }
 
+    // EP: contact change creating duplicate with case/whitespace normalized match
     @Test
     public void execute_contactChangeCreatesNormalizedDuplicate_failure() {
         Person first = new PersonBuilder().withAgeCategory("Under 14").withTags("sprinter").build();
@@ -245,30 +260,31 @@ public class EditCommandTest {
     public void equals() {
         final EditCommand standardCommand = new EditCommand(INDEX_FIRST_PERSON, DESC_AMY);
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same index and descriptor)
         EditPersonDescriptor copyDescriptor = new EditPersonDescriptor(DESC_AMY);
         EditCommand commandWithSameValues = new EditCommand(INDEX_FIRST_PERSON, copyDescriptor);
         assertTrue(standardCommand.equals(commandWithSameValues));
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(standardCommand.equals(standardCommand));
 
-        // null -> returns false
-        assertFalse(standardCommand.equals(null));
+        // EP: null comparison
+        assertFalse(standardCommand.equals(null)); // Boundary value
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(standardCommand.equals(new ClearCommand()));
 
-        // different index -> returns false
+        // EP: different index
         assertFalse(standardCommand.equals(new EditCommand(INDEX_SECOND_PERSON, DESC_AMY)));
 
-        // different descriptor -> returns false
+        // EP: different descriptor
         assertFalse(standardCommand.equals(new EditCommand(INDEX_FIRST_PERSON, DESC_BOB)));
     }
 
+    // EP: string representation of edit command
     @Test
     public void toStringMethod() {
-        Index index = Index.fromOneBased(1);
+        Index index = Index.fromOneBased(1); // Boundary value
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         EditCommand editCommand = new EditCommand(index, editPersonDescriptor);
         String expected = EditCommand.class.getCanonicalName() + "{index=" + index + ", editPersonDescriptor="
@@ -276,6 +292,7 @@ public class EditCommandTest {
         assertEquals(expected, editCommand.toString());
     }
 
+    // EP: message usage contains all enumerated valid age categories
     @Test
     public void messageUsage_listsAllValidAgeCategories() {
         List<String> validCategories = List.of("Under 14", "Under 16", "Under 18", "Under 20", "Open");

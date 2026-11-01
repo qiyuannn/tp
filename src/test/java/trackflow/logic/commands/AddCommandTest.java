@@ -27,11 +27,13 @@ import trackflow.testutil.PersonBuilder;
 
 public class AddCommandTest {
 
+    // EP: null person to add
     @Test
     public void constructor_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new AddCommand(null));
+        assertThrows(NullPointerException.class, () -> new AddCommand(null)); // Boundary value
     }
 
+    // EP: valid person successfully added to model
     @Test
     public void execute_personAcceptedByModel_addSuccessful() throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
@@ -41,9 +43,10 @@ public class AddCommandTest {
 
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.formatAthlete(validPerson)),
                 commandResult.getFeedbackToUser());
-        assertEquals(List.of(validPerson), modelStub.personsAdded);
+        assertEquals(List.of(validPerson), modelStub.personsAdded); // Boundary value
     }
 
+    // EP: duplicate person rejected by model
     @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person validPerson = new PersonBuilder().build();
@@ -54,6 +57,7 @@ public class AddCommandTest {
                 validPerson.getName()), () -> addCommand.execute(modelStub));
     }
 
+    // EP: person with shared contact details added with duplicate warning
     @Test
     public void execute_sharedContactWithDifferentNames_addsWithWarning() throws Exception {
         Person firstMatch = new PersonBuilder().withName("First Match")
@@ -83,23 +87,24 @@ public class AddCommandTest {
         AddCommand addAliceCommand = new AddCommand(alice);
         AddCommand addBobCommand = new AddCommand(bob);
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(addAliceCommand.equals(addAliceCommand));
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same person)
         AddCommand addAliceCommandCopy = new AddCommand(alice);
         assertTrue(addAliceCommand.equals(addAliceCommandCopy));
 
-        // different types -> returns false
+        // EP: different object type
         assertFalse(addAliceCommand.equals(1));
 
-        // null -> returns false
-        assertFalse(addAliceCommand.equals(null));
+        // EP: null comparison
+        assertFalse(addAliceCommand.equals(null)); // Boundary value
 
-        // different person -> returns false
+        // EP: different person to add
         assertFalse(addAliceCommand.equals(addBobCommand));
     }
 
+    // EP: string representation of add command
     @Test
     public void toStringMethod() {
         AddCommand addCommand = new AddCommand(ALICE);
@@ -107,6 +112,7 @@ public class AddCommandTest {
         assertEquals(expected, addCommand.toString());
     }
 
+    // EP: message usage contains all enumerated valid age categories
     @Test
     public void messageUsage_listsAllValidAgeCategories() {
         List<String> validCategories = List.of("Under 14", "Under 16", "Under 18", "Under 20", "Open");

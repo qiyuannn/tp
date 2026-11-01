@@ -14,6 +14,7 @@ import trackflow.model.UserPrefs;
 
 public class ClearCommandTest {
 
+    // EP: unconfirmed clear command (requires confirmation, roster preserved)
     @Test
     public void execute_unconfirmed_keepsRoster() {
         Model model = new ModelManager(getTypicalRoster(), new UserPrefs());
@@ -23,14 +24,16 @@ public class ClearCommandTest {
                 CommandResult.warning(ClearCommand.MESSAGE_CONFIRMATION), expectedModel);
     }
 
+    // EP: confirmed clear on empty athlete roster
     @Test
     public void execute_emptyAthleteRoster_success() {
-        Model model = new ModelManager();
+        Model model = new ModelManager(); // Boundary value
         Model expectedModel = new ModelManager();
 
         assertCommandSuccess(new ClearCommand(true), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
     }
 
+    // EP: confirmed clear on non-empty athlete roster
     @Test
     public void execute_nonEmptyAthleteRoster_success() {
         Model model = new ModelManager(getTypicalRoster(), new UserPrefs());

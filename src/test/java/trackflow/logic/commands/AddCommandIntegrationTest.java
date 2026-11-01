@@ -35,10 +35,11 @@ public class AddCommandIntegrationTest {
     }
 
     // @@author Austin-Chia
+    // EP: shared contact with person outside currently filtered (empty) list
     @Test
     public void execute_sharedContactOutsideFilteredList_succeedsWithWarning() {
-        Person existing = model.getRoster().getPersonList().get(0);
-        model.updateFilteredPersonList(person -> false);
+        Person existing = model.getRoster().getPersonList().get(0); // Boundary value
+        model.updateFilteredPersonList(person -> false); // Boundary value
         Person candidate = new PersonBuilder(existing).withName("Different Athlete")
                 .withEmail("new@example.com").build();
         Model expectedModel = new ModelManager(model.getRoster(), new UserPrefs());
@@ -50,9 +51,10 @@ public class AddCommandIntegrationTest {
         assertCommandSuccess(new AddCommand(candidate), model, expected, expectedModel);
     }
 
+    // EP: person with same name but distinct phone and email contacts
     @Test
     public void execute_sameNameDifferentContacts_succeedsWithoutWarning() {
-        Person existing = model.getRoster().getPersonList().get(0);
+        Person existing = model.getRoster().getPersonList().get(0); // Boundary value
         Person candidate = new PersonBuilder(existing).withPhone("81112222").withEmail("new@example.com").build();
         Model expectedModel = new ModelManager(model.getRoster(), new UserPrefs());
         // @@author
@@ -61,6 +63,7 @@ public class AddCommandIntegrationTest {
                 String.format(AddCommand.MESSAGE_SUCCESS, Messages.formatAthlete(candidate)), expectedModel);
     }
 
+    // EP: valid new person added to populated roster
     @Test
     public void execute_newPerson_success() {
         Person validPerson = new PersonBuilder().build();
@@ -75,10 +78,11 @@ public class AddCommandIntegrationTest {
                 expectedModel);
     }
 
+    // EP: duplicate person already present in roster
     @Test
     public void execute_duplicatePerson_throwsCommandException() {
         // @@author Austin-Chia
-        Person personInList = model.getRoster().getPersonList().get(0);
+        Person personInList = model.getRoster().getPersonList().get(0); // Boundary value
         // @@author
         assertCommandFailure(new AddCommand(personInList), model,
                 String.format(AddCommand.MESSAGE_DUPLICATE_PERSON, personInList.getName()));

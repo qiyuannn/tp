@@ -13,13 +13,19 @@ public class ListAthleteCommandParserTest {
 
     @Test
     public void parse_noArguments_returnsListAthleteCommand() throws Exception {
-        assertInstanceOf(ListAthleteCommand.class, parser.parse(""));
+        // EP: empty arguments string
+        assertInstanceOf(ListAthleteCommand.class, parser.parse("")); // Boundary value
+
+        // EP: whitespace-only arguments string
         assertInstanceOf(ListAthleteCommand.class, parser.parse("   \t\n"));
     }
 
     @Test
     public void parse_argumentsPresent_throwsParseException() {
-        assertParseFailure(parser, "1", ListAthleteCommand.MESSAGE_USAGE);
+        // EP: unexpected preamble index argument
+        assertParseFailure(parser, "1", ListAthleteCommand.MESSAGE_USAGE); // Boundary value
+
+        // EP: unexpected prefix argument
         assertParseFailure(parser, " n/Avery Tan", ListAthleteCommand.MESSAGE_USAGE);
     }
 }

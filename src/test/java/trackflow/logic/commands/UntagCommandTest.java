@@ -31,6 +31,7 @@ public class UntagCommandTest {
 
     private final Model model = new ModelManager(getTypicalRoster(), new UserPrefs());
 
+    // EP: remove single existing tag/event with case-insensitive matching
     @Test
     public void execute_existingEvent_removesEvent() {
         // BENSON has 'owesMoney' and 'friends'; matching ignores case and reports the stored name
@@ -45,11 +46,12 @@ public class UntagCommandTest {
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
 
+    // EP: remove all existing tags/events from person resulting in empty tag set
     @Test
     public void execute_allEvents_removesAllEvents() {
         Person athlete = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
         UntagCommand command = new UntagCommand(INDEX_SECOND_PERSON, getTagSet("owesMoney", "friends"));
-        Person untaggedAthlete = new PersonBuilder(athlete).withTags().build();
+        Person untaggedAthlete = new PersonBuilder(athlete).withTags().build(); // Boundary value
 
         String expectedMessage = String.format(UntagCommand.MESSAGE_SUCCESS, "friends, owesMoney",
                 athlete.getName());
@@ -59,17 +61,18 @@ public class UntagCommandTest {
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
 
+    // EP: remove legacy tag/event exceeding max length limit
     @Test
     public void execute_legacyEventLongerThanLimit_removesEvent() {
         Person athlete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Tag legacyEvent = Tag.fromStoredName("A".repeat(Tag.MAX_LENGTH + 1));
+        Tag legacyEvent = Tag.fromStoredName("A".repeat(Tag.MAX_LENGTH + 1)); // Boundary value
         Person athleteWithLegacyEvent = new Person(athlete.getName(), athlete.getAgeCategory(), athlete.getPhone(),
                 athlete.getEmail(), athlete.getAddress(), athlete.getRemark(), Set.of(legacyEvent));
         model.setPerson(athlete, athleteWithLegacyEvent);
 
         UntagCommand command = new UntagCommand(INDEX_FIRST_PERSON,
-                Set.of(Tag.fromStoredName("a".repeat(Tag.MAX_LENGTH + 1)))); // matching ignores case
-        Person untaggedAthlete = new PersonBuilder(athleteWithLegacyEvent).withTags().build();
+                Set.of(Tag.fromStoredName("a".repeat(Tag.MAX_LENGTH + 1)))); // Boundary value
+        Person untaggedAthlete = new PersonBuilder(athleteWithLegacyEvent).withTags().build(); // Boundary value
 
         String expectedMessage = String.format(UntagCommand.MESSAGE_SUCCESS, legacyEvent.tagName,
                 athlete.getName());
@@ -79,6 +82,7 @@ public class UntagCommandTest {
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
 
+    // EP: untag non-existent tags/events (throws failure and makes no change)
     @Test
     public void execute_eventNotPresent_failureAndNothingRemoved() {
         Person athlete = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
@@ -88,11 +92,12 @@ public class UntagCommandTest {
                 String.format(UntagCommand.MESSAGE_EVENT_NOT_FOUND, athlete.getName(), "100m, 200m"));
     }
 
+    // EP: remove tag from displayed person in filtered list at valid first index
     @Test
     public void execute_filteredList_untagsDisplayedAthlete() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
         Person athlete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        UntagCommand command = new UntagCommand(INDEX_FIRST_PERSON, getTagSet("owesMoney"));
+        UntagCommand command = new UntagCommand(INDEX_FIRST_PERSON, getTagSet("owesMoney")); // Boundary value
         Person untaggedAthlete = new PersonBuilder(athlete).withTags("friends").build();
 
         String expectedMessage = String.format(UntagCommand.MESSAGE_SUCCESS, "owesMoney", athlete.getName());
@@ -102,18 +107,20 @@ public class UntagCommandTest {
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
 
+    // EP: invalid index exceeding unfiltered list size
     @Test
     public void execute_invalidIndexUnfilteredList_failure() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1); // Boundary value
         UntagCommand command = new UntagCommand(outOfBoundIndex, getTagSet("friends"));
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
+    // EP: invalid index exceeding filtered list size but within athlete roster size
     @Test
     public void execute_invalidIndexFilteredList_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        UntagCommand command = new UntagCommand(INDEX_SECOND_PERSON, getTagSet("friends"));
+        UntagCommand command = new UntagCommand(INDEX_SECOND_PERSON, getTagSet("friends")); // Boundary value
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
@@ -122,25 +129,25 @@ public class UntagCommandTest {
     public void equals() {
         UntagCommand standardCommand = new UntagCommand(INDEX_FIRST_PERSON, getTagSet("100m"));
 
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same index and tag set)
         assertTrue(standardCommand.equals(new UntagCommand(INDEX_FIRST_PERSON, getTagSet("100m"))));
 
-        // same events in different case -> returns true
+        // EP: case-insensitive event match equality
         assertTrue(standardCommand.equals(new UntagCommand(INDEX_FIRST_PERSON, getTagSet("100M"))));
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(standardCommand.equals(standardCommand));
 
-        // null -> returns false
-        assertFalse(standardCommand.equals(null));
+        // EP: null comparison
+        assertFalse(standardCommand.equals(null)); // Boundary value
 
-        // tag command with same values -> returns false
+        // EP: different command type
         assertFalse(standardCommand.equals(new TagCommand(INDEX_FIRST_PERSON, getTagSet("100m"))));
 
-        // different index -> returns false
+        // EP: different index value
         assertFalse(standardCommand.equals(new UntagCommand(INDEX_SECOND_PERSON, getTagSet("100m"))));
 
-        // different events -> returns false
+        // EP: different tag set
         assertFalse(standardCommand.equals(new UntagCommand(INDEX_FIRST_PERSON, getTagSet("200m"))));
     }
 }

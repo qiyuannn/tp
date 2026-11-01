@@ -41,10 +41,11 @@ public class JsonRosterStorageTest {
     @TempDir
     public Path testFolder;
 
+    // EP: null file path
     @Test
     // @@author qiyuannn
     public void readRoster_nullFilePath_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> readRoster(null));
+        assertThrows(NullPointerException.class, () -> readRoster(null)); // Boundary value
         // @@author -
     }
 
@@ -60,13 +61,15 @@ public class JsonRosterStorageTest {
                 : null;
     }
 
+    // EP: non-existent file path
     @Test
     public void read_missingFile_emptyResult() throws Exception {
         // @@author qiyuannn
-        assertFalse(readRoster("NonExistentFile.json").isPresent());
+        assertFalse(readRoster("NonExistentFile.json").isPresent()); // Boundary value
         // @@author -
     }
 
+    // EP: invalid file format (non-JSON content)
     @Test
     public void read_notJsonFormat_exceptionThrown() {
         // @@author qiyuannn
@@ -74,6 +77,7 @@ public class JsonRosterStorageTest {
         // @@author -
     }
 
+    // EP: valid JSON syntax but invalid athlete data
     @Test
     // @@author qiyuannn
     public void readRoster_invalidPersonAthleteRoster_throwDataLoadingException() {
@@ -81,11 +85,17 @@ public class JsonRosterStorageTest {
         // @@author -
     }
 
+    // EP: malformed JSON structures and schema violations
     // @@author qiyuannn
     @Test
     public void readRoster_malformedStructure_throwsDataLoadingException() throws Exception {
         Path filePath = testFolder.resolve("malformed.json");
-        List<String> malformedRosters = List.of("", "null", "{}", "{\"persons\":null}", "{\"persons\":[null]}",
+        List<String> malformedRosters = List.of(
+                "", // Boundary value
+                "null",
+                "{}", // Boundary value
+                "{\"persons\":null}",
+                "{\"persons\":[null]}",
                 """
                 {"persons": [{"name": "Avery Tan", "phone": "91234567",
                 "email": "avery.tan@example.com", "address": "", "remark": "", "tags": [null]}]}
@@ -97,6 +107,7 @@ public class JsonRosterStorageTest {
         }
     }
 
+    // EP: save and read roster workflows
     // @@author -
     @Test
     // @@author qiyuannn
@@ -106,6 +117,7 @@ public class JsonRosterStorageTest {
         JsonRosterStorage jsonRosterStorage = new JsonRosterStorage(filePath);
         // @@author -
 
+        // EP: save and read roster with explicit file path (new file)
         // Save in new file and read back
         // @@author qiyuannn
         jsonRosterStorage.saveRoster(original, filePath);
@@ -113,6 +125,7 @@ public class JsonRosterStorageTest {
         assertEquals(original, new AthleteRoster(readBack));
         // @@author -
 
+        // EP: overwrite existing file with modified roster
         // Modify data, overwrite existing file, and read back
         original.addPerson(HOON);
         original.removePerson(ALICE);
@@ -122,6 +135,7 @@ public class JsonRosterStorageTest {
         assertEquals(original, new AthleteRoster(readBack));
         // @@author -
 
+        // EP: save and read roster using default file path
         // Save and read without specifying file path
         original.addPerson(IDA);
         // @@author qiyuannn
@@ -132,10 +146,11 @@ public class JsonRosterStorageTest {
 
     }
 
+    // EP: null roster object
     @Test
     // @@author qiyuannn
     public void saveRoster_nullAthleteRoster_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> saveRoster(null, "SomeFile.json"));
+        assertThrows(NullPointerException.class, () -> saveRoster(null, "SomeFile.json")); // Boundary value
         // @@author -
     }
 
@@ -155,10 +170,11 @@ public class JsonRosterStorageTest {
         }
     }
 
+    // EP: null file path when saving roster
     @Test
     // @@author qiyuannn
     public void saveRoster_nullFilePath_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> saveRoster(new AthleteRoster(), null));
+        assertThrows(NullPointerException.class, () -> saveRoster(new AthleteRoster(), null)); // Boundary value
         // @@author -
     }
 }

@@ -24,6 +24,7 @@ import trackflow.testutil.PersonBuilder;
 
 public class PersonTest {
 
+    // EP: immutable tag set (modifying returned set throws UnsupportedOperationException)
     @Test
     public void getTags_modifySet_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
@@ -32,27 +33,32 @@ public class PersonTest {
 
     @Test
     public void isSamePerson() {
-        // same object -> returns true
+        // EP: reflexive identity (same object instance)
         assertTrue(ALICE.isSamePerson(ALICE));
 
-        // null -> returns false
-        assertFalse(ALICE.isSamePerson(null));
+        // EP: null person
+        assertFalse(ALICE.isSamePerson(null)); // Boundary value
 
-        // Matching name and either contact identifies a duplicate, regardless of category.
+        // EP: same name and one matching contact detail (other contact detail differs)
         assertTrue(ALICE.isSamePerson(new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build()));
         assertTrue(ALICE.isSamePerson(new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build()));
+
+        // EP: different name with identical contact details
         assertFalse(ALICE.isSamePerson(new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build()));
+
+        // EP: same name and contact details with different non-identity attributes (age category)
         assertTrue(ALICE.isSamePerson(new PersonBuilder(ALICE).withAgeCategory("Under 14").build()));
 
+        // EP: same name with all contact details different (neither phone nor email matches)
         assertFalse(ALICE.isSamePerson(new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB)
                 .withEmail(VALID_EMAIL_BOB).build()));
 
-        // Display case, surrounding spaces, and repeated name spaces do not change identity.
+        // EP: same identity with case variation and redundant whitespace in name or email
         Person normalizedAlice = new PersonBuilder(ALICE).withName("Alice   Pauline ")
                 .withEmail(ALICE.getEmail().value.toUpperCase()).build();
         assertTrue(ALICE.isSamePerson(normalizedAlice));
 
-        // Legacy data fields and remarks do not contribute to athlete identity.
+        // EP: same identity with different non-identity fields (address, remark, tags)
         Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB)
                 .withRemark("Different remark")
                 .withTags(VALID_TAG_HUSBAND).build();
@@ -61,22 +67,23 @@ public class PersonTest {
 
     @Test
     public void hasSameContactDetails() {
-        // null -> returns false
-        assertFalse(ALICE.hasSameContactDetails(null));
+        // EP: null person
+        assertFalse(ALICE.hasSameContactDetails(null)); // Boundary value
 
-        // same object -> returns true
+        // EP: reflexive identity (same object instance)
         assertTrue(ALICE.hasSameContactDetails(ALICE));
 
-        // different name, same phone -> returns true
+        // EP: same phone number with different name
         assertTrue(ALICE.hasSameContactDetails(new PersonBuilder(BOB).withPhone(ALICE.getPhone().value).build()));
 
-        // different name, same email (case-insensitive) -> returns true
+        // EP: same email (case-insensitive) with different name
         assertTrue(ALICE.hasSameContactDetails(
                 new PersonBuilder(BOB).withEmail(ALICE.getEmail().value.toUpperCase()).build()));
 
-        // different phone and email -> returns false
+        // EP: completely different contact details (both phone and email differ)
         assertFalse(ALICE.hasSameContactDetails(BOB));
 
+        // EP: phone matching via significant digits with notes and international country code formatting
         Person local = new PersonBuilder(ALICE).withPhone("81234567").withEmail("local@example.com").build();
         Person withNote = new PersonBuilder(local).withPhone("81234567 (Office 2)")
                 .withEmail("note@example.com").build();
@@ -87,7 +94,7 @@ public class PersonTest {
         assertTrue(withCountryCode.isSamePerson(new PersonBuilder(withCountryCode)
                 .withPhone("6581234567 (Office 2)").withEmail("other@example.com").build()));
 
-        // digits inside a note are not part of the number, so 200 (5) and 2005 are different phones
+        // EP: phone numbers where digits inside parenthesized notes are excluded from significant digits
         Person withNumericNote = new PersonBuilder(local).withPhone("200 (5)").withEmail("x1@example.com")
                 .build();
         assertFalse(withNumericNote.isSamePerson(new PersonBuilder(withNumericNote).withPhone("2005")
@@ -96,52 +103,53 @@ public class PersonTest {
 
     @Test
     public void equals() {
-        // same values -> returns true
+        // EP: symmetric equality (different instance with same field values and hash code)
         Person aliceCopy = new PersonBuilder(ALICE).build();
         assertTrue(ALICE.equals(aliceCopy));
         assertEquals(ALICE.hashCode(), aliceCopy.hashCode());
 
-        // same object -> returns true
+        // EP: reflexive equality (same object instance)
         assertTrue(ALICE.equals(ALICE));
 
-        // null -> returns false
-        assertFalse(ALICE.equals(null));
+        // EP: null comparison
+        assertFalse(ALICE.equals(null)); // Boundary value
 
-        // different type -> returns false
+        // EP: different object type
         assertFalse(ALICE.equals(5));
 
-        // different person -> returns false
+        // EP: different person instance with completely different fields
         assertFalse(ALICE.equals(BOB));
 
-        // different name -> returns false
+        // EP: different name
         Person editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different phone -> returns false
+        // EP: different phone
         editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different email -> returns false
+        // EP: different email
         editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different address -> returns false
+        // EP: different address
         editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different category -> returns false
+        // EP: different age category
         editedAlice = new PersonBuilder(ALICE).withAgeCategory("Under 14").build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different remark -> returns false
+        // EP: different remark
         editedAlice = new PersonBuilder(ALICE).withRemark("Different remark").build();
         assertFalse(ALICE.equals(editedAlice));
 
-        // different tags -> returns false
+        // EP: different tags
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
     }
 
+    // EP: valid string representation of Person containing all attributes
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()

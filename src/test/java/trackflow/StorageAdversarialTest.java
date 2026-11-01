@@ -38,27 +38,29 @@ public class StorageAdversarialTest {
     @TempDir
     public Path testFolder;
 
+    // EP: startup with invalid UTF-8 bytes recovers empty roster and preserves bytes in backup
     @Test
     public void startup_invalidUtf8_preservesOriginalBytesBeforeAnyReplacement() throws Exception {
         Path rosterPath = testFolder.resolve("trackflow.json");
-        byte[] corruptBytes = {(byte) 0xc3, (byte) 0x28, (byte) 0xff, 0};
+        byte[] corruptBytes = {(byte) 0xc3, (byte) 0x28, (byte) 0xff, 0}; // Boundary value
         Files.write(rosterPath, corruptBytes);
         Storage storage = createStorage(rosterPath);
         MainApp app = new MainApp();
 
         Model model = app.initModelManager(storage, new UserPrefs());
 
-        assertEquals(new AthleteRoster(), model.getRoster());
+        assertEquals(new AthleteRoster(), model.getRoster()); // Boundary value
         assertNotNull(app.getRosterLoadWarning());
         assertArrayEquals(corruptBytes, Files.readAllBytes(rosterPath));
         Path backup;
         try (Stream<Path> files = Files.list(testFolder)) {
             List<Path> backups = files.filter(path -> path.toString().endsWith(".bak")).toList();
-            assertEquals(1, backups.size());
+            assertEquals(1, backups.size()); // Boundary value
             backup = backups.getFirst();
         }
         assertArrayEquals(corruptBytes, Files.readAllBytes(backup));
 
+        // EP: modifying roster after UTF-8 recovery preserves original bytes in backup
         Logic logic = new LogicManager(model, storage);
         logic.execute("add n/Recovered Athlete a/Open p/123 e/recovered@example.com addr/Home");
 
@@ -66,6 +68,7 @@ public class StorageAdversarialTest {
         assertEquals(model.getRoster(), storage.readRoster().orElseThrow());
     }
 
+    // EP: atomic filesystem replacement failure preserves model state across mutating commands
     @Test
     public void execute_actualReplacementFailure_preservesAllStateAndCanRetryAfterRepair() throws Exception {
         Path rosterPath = testFolder.resolve("trackflow.json");
@@ -92,6 +95,7 @@ public class StorageAdversarialTest {
         Path blockingFile = rosterPath.resolve("keep.txt");
         Files.writeString(blockingFile, "Do not replace");
 
+        // EP: mutating commands roll back state when storage replacement is blocked
         for (String command : List.of("add n/New Athlete a/Open p/123 e/new@example.com addr/Home",
                 "edit 1 n/Changed Athlete", "remark 1 r/Changed note", "tag 1 t/800m", "untag 1 t/100m",
                 "delete 1", "y")) {
@@ -104,7 +108,7 @@ public class StorageAdversarialTest {
             assertEquals(originalDisplay, model.getFilteredPersonList(), command);
             assertSame(originalPredicate, model.getPersonListPredicate(), command);
             assertSame(originalComparator, model.getPersonListComparator(), command);
-            assertEquals(0, publishedChanges[0], command);
+            assertEquals(0, publishedChanges[0], command); // Boundary value
             assertArrayEquals(originalBytes, Files.readAllBytes(preservedRoster), command);
             assertEquals("Do not replace", Files.readString(blockingFile), command);
             try (Stream<Path> files = Files.list(testFolder)) {
@@ -112,6 +116,7 @@ public class StorageAdversarialTest {
             }
         }
 
+        // EP: successful command retry after removing filesystem blockage
         Files.delete(blockingFile);
         Files.delete(rosterPath);
         Files.move(preservedRoster, rosterPath);
