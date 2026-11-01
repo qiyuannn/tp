@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -165,8 +167,15 @@ public class PersonListPanel extends UiPart<Region> {
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
      */
     class PersonListViewCell extends ListCell<Person> {
+        // Held strongly for the cell's lifetime so the weak registration below stays active. The long-lived
+        // recentlyAddedPerson then keeps only a weak reference to it, so when the ListView discards this cell the
+        // listener becomes collectable and WeakChangeListener unregisters it, instead of recycled cells piling up
+        // on the property for the whole session.
+        private final ChangeListener<Person> highlightListener = (unused, oldPerson, newPerson) ->
+                updateNewAthleteHighlight();
+
         PersonListViewCell() {
-            recentlyAddedPerson.addListener((unused, oldPerson, newPerson) -> updateNewAthleteHighlight());
+            recentlyAddedPerson.addListener(new WeakChangeListener<>(highlightListener));
         }
 
         @Override
